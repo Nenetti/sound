@@ -6,9 +6,9 @@ import java.util.List;
 public class Terminal {
 	
 	
-	public static Process execute(String command, boolean isWait, boolean isInheritIO) {
+	public static Process execute(String[] command, boolean isWait, boolean isInheritIO) {
 		try {
-			ProcessBuilder builder=new ProcessBuilder(toProcessCommand(command));
+			ProcessBuilder builder=new ProcessBuilder(command);
 			if(isInheritIO) {
 				builder.inheritIO();
 			}

@@ -16,6 +16,7 @@ import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
 import recognition.module.Julius;
+import recognition.module.Julius.Result;
 import ros.NodeHandle;
 import ros.ServiceClient;
 import ros.ServiceServer;
@@ -74,16 +75,17 @@ public class Recognition extends AbstractNodeMain {
 	}
 	
 	public void answerThread() {
+		while(!julius.isConnected())
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
 				NodeHandle.duration(1000);
-				julius.playWav("active");
+				//julius.playWav("active");
 				while(true) {
-					if(julius_en.isConnected()) {
-						String result=julius_en.recognition();
+					if(julius.isConnected()) {
+						Result result=julius.recognition();
 						if(result!=null) {
-							status_mic.publish(createMessage("off"));
+							status_mic.publish("off");
 							result=result.replaceAll("_", " ");
 							String answer=questions.get(result);
 							if(answer==null) {

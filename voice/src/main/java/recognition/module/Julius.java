@@ -15,11 +15,11 @@ import ros.NodeHandle;
 
 public class Julius {
 
-	private String storagePath="ros/sound";
-	private String command="boot.sh";
 	private String home=System.getProperty("user.home");
 	private String path="ros/sound/julius";
+	private String shell="boot.sh";
 	private String host;
+	private String exec=home+"/"+path+"/"+shell;
 	private int port;
 
 	private BufferedReader reader;
@@ -28,7 +28,7 @@ public class Julius {
 
 	private Socket socket;
 	
-	public double score;
+	public String result;
 
 	enum type{
 		SHYP_S,
@@ -51,16 +51,12 @@ public class Julius {
 	public Julius(final String host, final int port) {
 		this.host=host;
 		this.port=port;
-		setup();
-	}
-
-	/******************************************************************************************
-	 * 
-	 * 初期設定
-	 */
-	private void setup() {
-		Terminal.execute(path, command+" "+toPath(path)+" "+port, false, true);
+		run("bash", exec, String.valueOf(port));
 		socket_connect();
+	}
+	
+	private void run(String... command) {
+		Terminal.execute(command, false, true);
 	}
 
 	/******************************************************************************************
@@ -88,8 +84,10 @@ public class Julius {
 			}
 		}).start();
 	}
-
 	
+	/******************************************************************************************
+	 * 
+	 */
 	public void pause() {
 		try {
 			stream.write(("TERMINATE"+"\n").getBytes());
@@ -99,6 +97,9 @@ public class Julius {
 		}
 	}
 	
+	/******************************************************************************************
+	 * 
+	 */
 	public void resume() {
 		try {
 			stream.write(("RESUME"+"\n").getBytes());
@@ -108,30 +109,21 @@ public class Julius {
 		}
 	}
 	
-	public void playWav(String fileName) {
-		Terminal.execute("aplay "+toPath(storagePath, fileName+".wav"), true, false);
-	}
-	
 	/******************************************************************************************
 	 * 
 	 * juliusに音声ファイルパスを投げて音声認識させる
 	 */
-	public String recognition() {
-		try {
-			return getResult();
-		} catch (Exception e) {
-			//e.printStackTrace();
-		}
-		return null;
+	public Result recognition() {
+		return getResult();
 	}
-
+	
 	/******************************************************************************************
 	 * 
 	 * juliusから返ってくる認識結果の文字を取り出す
 	 * 
 	 * @return
 	 */
-	private String getResult() {
+	private Result getResult() {
 		String line;
 		while(true) {
 			try {
@@ -144,20 +136,10 @@ public class Julius {
 							switch (type) {
 							case WHYPO_WORD:
 								String[] split=line.split("\"");
-								this.score=Double.valueOf(split[7]);
+								double score=Double.valueOf(split[7]);
 								System.out.println(score+" : "+split[1].replace('^', ' '));
 								String result=split[1].replace('^', ' ');
-								if(score>0.9) {
-									if(result.length()>3) {
-										return result;
-									}
-									return null;
-								}else {
-									if(result.length()>3) {
-										return "n";	
-									}
-									return null;
-								}
+								return new Result(result, score);
 							case REJECTED_REASON:
 								return null;
 							case END:
@@ -235,21 +217,14 @@ public class Julius {
 		}
 		return false;
 	}
-
-	/******************************************************************************************
-	 * 
-	 * @param args
-	 * @return
-	 */
-	private String toPath(String... args) {
-		if(args!=null) {
-			String path=System.getProperty("user.home");
-			for(String arg: args) {
-				path+="/"+arg;
-			}
-			return path;
+	
+	public class Result {
+		String result;
+		double score;
+		public Result(String result, double score) {
+			this.result=result;
+			this.score=score;
 		}
-		return null;
 	}
 
 }
