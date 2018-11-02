@@ -16,6 +16,7 @@ import org.ros.node.topic.Publisher;
 import org.ros.node.topic.Subscriber;
 
 import recognition.module.Julius;
+import ros.NodeHandle;
 import ros.ServiceClient;
 import ros.ServiceServer;
 
@@ -31,17 +32,11 @@ public class Recognition extends AbstractNodeMain {
 
 	private boolean isProcess=false;
 
-	private Language language=Language.Japanese;
-
-	private Publisher<std_msgs.String> status_mic;
+	private Subscriber<std_msgs.String> status_mic;
 	private ServiceServer<std_msgs.String> command;
+	private Julius julius;
 
-
-	public enum Language{
-		Japanese,
-		English;
-	}
-
+	
 	/******************************************************************************************
 	 * 
 	 */
@@ -56,37 +51,38 @@ public class Recognition extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		status_mic=connectedNode.newPublisher("status/mic", std_msgs.String._TYPE);
-		command=new ServiceServer<>(connectedNode, "sound/voice/speak_en/command", std_msgs.String._TYPE);
-		command.addMessageListener(new MessageListener<std_msgs.String>() {
+		julius = new Julius("localhost", 10500);
+		status_mic = connectedNode.newSubscriber("status/mic", std_msgs.String._TYPE);
+		status_mic.addMessageListener(new MessageListener<std_msgs.String>() {
 			@Override
 			public void onNewMessage(std_msgs.String message) {
-				String data=message.getData();
-
-
-
-				command.complete();
-			}
+				if(message!=null) {
+					switch (message.getData()) {
+					case "ON":case "on":
+						julius.pause();
+						break;
+					case "OFF":case "off":
+						julius.resume();
+						break;
+					}
+				}
+			}			
 		});
 		loadQuestions();
-		//final Julius julius_ja=new Julius("localhost", 10500);
-		final Julius julius_en=new Julius("localhost", 10501);
-		//final Publisher<std_msgs.String> publisher_ja=connectedNode.newPublisher("sound/voice/speak_ja", std_msgs.String._TYPE);
-
-		final ServiceClient<std_msgs.String> publisher_en=new ServiceClient<>(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
-		//final ServiceClient<std_msgs.String> publisher = connectedNode.newPublisher("sound/voice/recognition/result", std_msgs.String._TYPE);
-
+		Publisher<std_msgs.String> publisher=connectedNode.newPublisher("sound/voice/speak", std_msgs.String._TYPE);
+		
+	}
+	
+	public void answerThread() {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				duration(1000);
-				julius_en.playWav("active");
-				status_mic.publish(createMessage("on"));
+				NodeHandle.duration(1000);
+				julius.playWav("active");
 				while(true) {
 					if(julius_en.isConnected()) {
 						String result=julius_en.recognition();
 						if(result!=null) {
-							julius_en.pause();
 							status_mic.publish(createMessage("off"));
 							result=result.replaceAll("_", " ");
 							String answer=questions.get(result);
@@ -106,12 +102,7 @@ public class Recognition extends AbstractNodeMain {
 			}
 		}).start();
 	}
-
-	private std_msgs.String createMessage(String data) {
-		std_msgs.String message=status_mic.newMessage();
-		message.setData(data);
-		return message;
-	}	
+	
 
 	public void loadQuestions() {
 		try {
@@ -133,30 +124,6 @@ public class Recognition extends AbstractNodeMain {
 
 	/******************************************************************************************
 	 * 
-	 * byte配列のwavデータをファイルに出力
-	 * 
-	 * @param message
-	 */
-	/*private void saveWaveFile(byte[] datas, int offSet) {
-		try {
-			for(int i=0;i<datas.length;i++) {
-				datas[i]+=128;
-			}
-			File file=new File(toPath(path, fileName));
-			if(file.exists()) {
-				file.delete();
-			}
-			file.createNewFile();
-			BufferedOutputStream stream=new BufferedOutputStream(new FileOutputStream(file));
-			stream.write(datas, offSet, datas.length-offSet);
-			stream.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}*/
-
-	/******************************************************************************************
-	 * 
 	 * @param args
 	 * @return
 	 */
@@ -170,13 +137,5 @@ public class Recognition extends AbstractNodeMain {
 		}
 		return null;
 	}
-
-
-	public void duration(int time) {
-		try {
-			Thread.sleep(time);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+	
 }

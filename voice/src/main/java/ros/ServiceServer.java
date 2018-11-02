@@ -12,7 +12,6 @@ public class ServiceServer<T> {
 	private Subscriber<T> subscriber;
 	private Publisher<std_msgs.Int32> publisher;
 	private Type type;
-
 	
 	public ServiceServer(ConnectedNode connectedNode, String topic, String type) {
 		String server_topic=topic+"_"+"server";

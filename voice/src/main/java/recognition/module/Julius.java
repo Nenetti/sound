@@ -9,6 +9,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 
 import process.Terminal;
+import ros.NodeHandle;
 
 
 
@@ -16,6 +17,7 @@ public class Julius {
 
 	private String storagePath="ros/sound";
 	private String command="boot.sh";
+	private String home=System.getProperty("user.home");
 	private String path="ros/sound/julius";
 	private String host;
 	private int port;
@@ -57,7 +59,7 @@ public class Julius {
 	 * 初期設定
 	 */
 	private void setup() {
-		Terminal.execute(toShellCommand(path, command)+" "+toPath(path)+" "+port, false, true);
+		Terminal.execute(path, command+" "+toPath(path)+" "+port, false, true);
 		socket_connect();
 	}
 
@@ -79,8 +81,8 @@ public class Julius {
 						stream=socket.getOutputStream();
 						break;
 					} catch (Exception e) {
-						System.out.println("Connect Failed "+port);
-						duration(1000);
+						System.out.println("Connected Failed "+port);
+						NodeHandle.duration(1000);
 					}
 				}
 			}
@@ -249,32 +251,5 @@ public class Julius {
 		}
 		return null;
 	}
-	
-	/******************************************************************************************
-	 * 
-	 * @param args
-	 * @return
-	 */
-	private String toShellCommand(String... args) {
-		if(args!=null) {
-			String path="bash "+System.getProperty("user.home");
-			for(String arg: args) {
-				path+="/"+arg;
-			}
-			return path;
-		}
-		return null;
-	}
 
-	/******************************************************************************************
-	 * 
-	 * @param time
-	 */
-	private void duration(int time) {
-		try {
-			Thread.sleep(time);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 }

@@ -1,5 +1,9 @@
 package ros;
 
+import java.io.BufferedInputStream;
+import java.io.IOException;
+import java.net.Socket;
+
 import org.ros.internal.message.Message;
 import org.ros.message.MessageListener;
 import org.ros.node.ConnectedNode;
@@ -37,19 +41,23 @@ public class ServiceClient<T> {
 	
 	@SuppressWarnings("unchecked")
 	public void publish(Object obj) {
-		switch (type) {
-		case String:
-			std_msgs.String string=((std_msgs.String)publisher.newMessage());
-			string.setData((String)obj);
-			publisher.publish((T)string);
-			break;
-		case Int32:
-			std_msgs.Int32 int32=((std_msgs.Int32)publisher.newMessage());
-			int32.setData((int)obj);
-			publisher.publish((T)int32);
-			break;
-		default:
-			break;
+		try {
+			switch (type) {
+			case String:
+				std_msgs.String string=((std_msgs.String)publisher.newMessage());
+				string.setData((String)obj);
+				publisher.publish((T)string);
+				break;
+			case Int32:
+				std_msgs.Int32 int32=((std_msgs.Int32)publisher.newMessage());
+				int32.setData((int)obj);
+				publisher.publish((T)int32);
+				break;
+			default:
+				break;
+			}	
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 	
