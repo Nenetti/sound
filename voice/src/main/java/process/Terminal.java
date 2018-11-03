@@ -1,7 +1,6 @@
 package process;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.lang.ProcessBuilder.Redirect;
 
 public class Terminal {
 	
@@ -12,6 +11,7 @@ public class Terminal {
 			if(isInheritIO) {
 				builder.inheritIO();
 			}
+			builder.redirectOutput(Redirect.PIPE);
 			Process process=builder.start();
 			if(isWait) {
 				process.waitFor();
@@ -21,15 +21,6 @@ public class Terminal {
 			e.printStackTrace();
 		}
 		return null;
-	}
-	
-	private static List<String> toProcessCommand(String command){
-		List<String> result=new ArrayList<>();
-		String[] splits=command.split(" ");
-		for(String str:splits) {
-			result.add(str);
-		}
-		return result;
 	}
 	
 }

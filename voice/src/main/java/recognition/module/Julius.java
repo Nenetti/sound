@@ -56,7 +56,7 @@ public class Julius {
 	}
 	
 	private void run(String... command) {
-		Terminal.execute(command, false, true);
+		Terminal.execute(command, false, false);		
 	}
 
 	/******************************************************************************************
@@ -90,6 +90,7 @@ public class Julius {
 	 */
 	public void pause() {
 		try {
+			System.out.println("PAUSE: "+port);
 			stream.write(("TERMINATE"+"\n").getBytes());
 			stream.flush();
 		} catch (Exception e) {
@@ -102,6 +103,7 @@ public class Julius {
 	 */
 	public void resume() {
 		try {
+			System.out.println("RESUME: "+port);
 			stream.write(("RESUME"+"\n").getBytes());
 			stream.flush();
 		} catch (Exception e) {

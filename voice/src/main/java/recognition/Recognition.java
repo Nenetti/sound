@@ -27,8 +27,18 @@ import ros.Subscriber;
 public class Recognition extends AbstractNodeMain {
 
 	private String path="ros/sound/julius";
-	private String fileName="voice.wav";
 	private String questionsName="quize.txt";
+
+
+	private final static String REPEAT="OK, Please repeat once more your question.";
+	private final static String NOANSWER="Sorry, I can't answer your question.";
+	private final static String QUESTION="Sorry,, Are you Said,,, ";
+	private final static String QUESTION2=", Yes or No.";
+	private final static String CAUTION="Sorry, Please answer with, Yes or No.";
+	private final static String OK="OK,, ";
+
+
+
 
 	private HashMap<String, String> questions;
 
@@ -39,9 +49,8 @@ public class Recognition extends AbstractNodeMain {
 	private Publisher se_publisher;
 	private ServiceClient voice_client;
 	private Julius julius;
-	private Julius julius_question;
 
-	
+
 	/******************************************************************************************
 	 * 
 	 * コンストラクター
@@ -49,7 +58,7 @@ public class Recognition extends AbstractNodeMain {
 	 */
 	public Recognition() {
 		julius = new Julius("word.jconf", "localhost", 10500);
-		julius_question = new Julius("response.jconf", "localhost", 10501);
+		NodeHandle.duration(2000);
 		loadQuestions();
 	}
 
@@ -81,7 +90,6 @@ public class Recognition extends AbstractNodeMain {
 						break;
 					case "OFF":case "off":
 						julius.pause();
-						julius_question.pause();
 						break;
 					}
 					mic_server.complete();
@@ -94,13 +102,10 @@ public class Recognition extends AbstractNodeMain {
 
 	public void answerThread() {
 		//接続待機
-		while(!julius.isConnected()||!julius_question.isConnected()) {NodeHandle.duration(1);}
-		julius_question.pause();
+		while(!julius.isConnected()) {NodeHandle.duration(1);}
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				//se_publisher.publish("active");
-				System.out.println("開始");
 				while(julius.isConnected()) {
 					Result result=julius.recognition();
 					if(result!=null&&result.result!=null) {
@@ -108,37 +113,46 @@ public class Recognition extends AbstractNodeMain {
 						String recognition=result.result.replaceAll("_", " ");
 						String answer=questions.get(recognition);
 						if(answer!=null) {
-							if(result.score>0.9) {
-								String question="Sorry,, Are you Said,,, "+recognition;
-								julius.pause();
-								voice_client.publish(question).waitForServer();
-								julius_question.resume();
-								Result response=null;
-								while((response=julius_question.recognition())==null);
-								julius_question.pause();
-								switch (response.result) {
-								case "Yes":
-									answer="OK, "+answer;
-									break;
-								case "No":
-									answer="Sorry, I can't answer your question.";
+							if(result.score>1.1) {
+								//正解なのでanswerはそのまま
+							}else {
+								//精度が微妙なので確認を取る
+								String question=QUESTION+recognition+QUESTION2;
+								publishVoice(question);
+								while(true) {
+									Result response=null;
+									while((response=julius.recognition())==null);
+									switch (response.result) {
+									case "YES":case "Yes":case "yes":
+										answer=OK+answer;
+										break;
+									case "NO":case "No":case "no":
+										answer=REPEAT;
+										break;
+									default:
+										publishVoice(CAUTION);
+										continue;
+									}
 									break;
 								}
-							}else if(result.score>=0.5) {
-								
 							}
 						}else {
-							answer="Sorry, I can't answer your question.";
+							//聞き取れなかった
+							answer=NOANSWER;
 						}
 						System.out.println("A: "+answer);
-						voice_client.publish(answer).waitForServer();
-						julius.resume();
-					}else {
-						//mic_publisher.publish("off");
+						publishVoice(answer);
 					}
+
 				}
 			}
 		}).start();
+	}
+
+	public void publishVoice(String text) {
+		julius.pause();
+		voice_client.publish(text).waitForServer();
+		julius.resume();
 	}
 
 
