@@ -1,26 +1,13 @@
 
 package recognition;
 
-import java.awt.geom.Area;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.util.HashMap;
 
-import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 
-import recognition.module.Julius;
-import recognition.module.Julius.Result;
 import ros.NodeHandle;
-import ros.Publisher;
-import ros.ServiceClient;
-import ros.ServiceServer;
-import ros.Subscriber;
+
 
 
 
