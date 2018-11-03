@@ -56,7 +56,7 @@ public class Julius {
 	}
 	
 	private void run(String... command) {
-		Terminal.execute(command, false, false);		
+		Terminal.execute(command, false, false);
 	}
 
 	/******************************************************************************************
@@ -78,7 +78,7 @@ public class Julius {
 						break;
 					} catch (Exception e) {
 						System.out.println("Connected Failed "+port);
-						NodeHandle.duration(1000);
+						NodeHandle.duration(100);
 					}
 				}
 			}

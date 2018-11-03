@@ -1,17 +1,15 @@
 
 package speak.module;
 
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-
 import process.Terminal;
+import speak.Speaker.Language;
 
 
 
-public class SVOX_Pico {
+
+public class VoiceMaker {
 	
-	private String shell="svox.sh";
+	private String shell;
 	private String home=System.getProperty("user.home");
 	private String path;
 	private String[] exec_play;
@@ -23,7 +21,15 @@ public class SVOX_Pico {
 	 * @param path
 	 * @param fileName
 	 */
-	public SVOX_Pico(String path, String fileName) {
+	public VoiceMaker(String path, String fileName, Language language) {
+		switch (language) {
+		case jp:
+			shell="open_JTalk.sh";
+			break;
+		case en:
+			shell="svox.sh";
+			break;
+		}
 		this.path=path;
 		this.exec_play=new String[]{"aplay", home+"/"+path+"/"+fileName+".wav"};
 	}

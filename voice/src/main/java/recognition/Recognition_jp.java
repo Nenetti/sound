@@ -21,32 +21,16 @@ import ros.Publisher;
 import ros.ServiceClient;
 import ros.ServiceServer;
 import ros.Subscriber;
+import speak.Speaker.Language;
 
 
 
-public class Recognition_jp {
+public class Recognition_jp extends Abstarct_Recognition{
 
 	private String path="ros/sound/julius";
 	private String questionsName="quize.txt";
 
-
-	private final static String REPEAT="OK。もういちどくりかえしてください";
-	private final static String NOANSWER="すいません。そのしつもんにはこたえられません";
-	private final static String QUESTION="すいません。あなたは";
-	private final static String QUESTION2="、といいましたか？ ";
-	private final static String CAUTION="はいかいいえでこたえてください";
-	private final static String OK="OK,, ";
-	
-	
-	private HashMap<String, String> questions;
-
-	private boolean isProcess=false;
-
-	private ServiceServer mic_server;
-	private Publisher mic_publisher;
-	private Publisher se_publisher;
-	private ServiceClient voice_client;
-	private Julius julius;
+	public static Recognition_jp instance=null;
 
 
 	/******************************************************************************************
@@ -55,16 +39,23 @@ public class Recognition_jp {
 	 * 
 	 */
 	public Recognition_jp() {
-		julius = new Julius("word_jp.jconf", "localhost", 10500);
-		NodeHandle.duration(2000);
-		loadQuestions();
+		super("word_jp.jconf", "localhost", 10501);
+		super.REPEAT="OK。もう一度繰り返してください";
+		super.NOANSWER="すいません。その質問には答えられません";
+		super.QUESTION="すいません。あなたは";
+		super.QUESTION2="、と言いましたか？ ";
+		super.CAUTION="イエスかノーで答えてください";
+		super.OK="OK,, ";
+		instance=this;
+		instance=this;
+		loadQuestions(toPath(path, questionsName));
 	}
 
 	/******************************************************************************************
 	 * 
 	 * rosjavaのメインメソッド
 	 */
-	public void start(ConnectedNode connectedNode) {
+	public void connect(ConnectedNode connectedNode) {
 		voice_client=new ServiceClient(connectedNode, "sound/voice/speak_jp", std_msgs.String._TYPE);
 		/*mic_publisher=new Publisher(connectedNode, "status/mic", std_msgs.String._TYPE);
 		mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
@@ -88,6 +79,8 @@ public class Recognition_jp {
 		answerThread();
 	}
 
+	
+	
 
 	public void answerThread() {
 		//接続待機
@@ -96,87 +89,59 @@ public class Recognition_jp {
 			@Override
 			public void run() {
 				while(julius.isConnected()) {
-					Result result=julius.recognition();
-					if(result!=null&&result.result!=null) {
-						//mic_publisher.publish("off");
-						String recognition=result.result.replaceAll("_", " ");
-						String answer=questions.get(recognition);
-						if(answer!=null) {
-							if(result.score>1.1) {
-								//正解なのでanswerはそのまま
-							}else {
-								//精度が微妙なので確認を取る
-								String question=QUESTION+recognition+QUESTION2;
-								publishVoice(question);
-								while(true) {
-									Result response=null;
-									while((response=julius.recognition())==null);
-									switch (response.result) {
-									case "YES":case "Yes":case "yes":
-										answer=OK+answer;
-										break;
-									case "NO":case "No":case "no":
-										answer=REPEAT;
-										break;
-									default:
-										publishVoice(CAUTION);
-										continue;
-									}
+					if(!isStop) {
+						Result result=julius.recognition();
+						if(result!=null&&result.result!=null) {
+							//mic_publisher.publish("off");
+							String recognition=result.result.replaceAll("_", " ");
+							if(recognition.equals("言語変更")) {
+								switch (toQuestion("言語変更しますか？")) {
+								case Yes:
+									changeLanguage(true, Language.jp);
+									break;
+								case No:
+									changeLanguage(false, Language.jp);
 									break;
 								}
+								continue;
 							}
-						}else {
-							//聞き取れなかった
-							answer=NOANSWER;
+							String answer=questions.get(recognition);
+							if(answer!=null) {
+								if(result.score>1.1) {
+									//正解なのでanswerはそのまま
+								}else {
+									//精度が微妙なので確認を取る
+									String question=QUESTION+recognition+QUESTION2;
+									publishVoice(question);
+									while(true) {
+										Result response=null;
+										while((response=julius.recognition())==null);
+										switch (response.result) {
+										case "YES":case "Yes":case "yes":
+											answer=OK+answer;
+											break;
+										case "NO":case "No":case "no":
+											answer=REPEAT;
+											break;
+										default:
+											publishVoice(CAUTION);
+											continue;
+										}
+										break;
+									}
+								}
+							}else {
+								//聞き取れなかった
+								answer=NOANSWER;
+							}
+							System.out.println("A: "+answer);
+							publishVoice(answer);
 						}
-						System.out.println("A: "+answer);
-						publishVoice(answer);
 					}
-
+					NodeHandle.duration(1);
 				}
 			}
 		}).start();
-	}
-
-	public void publishVoice(String text) {
-		julius.pause();
-		voice_client.publish(text).waitForServer();
-		julius.resume();
-	}
-
-
-	public void loadQuestions() {
-		try {
-			questions=new HashMap<>();
-			File file=new File(toPath(path, questionsName));
-			BufferedReader reader=new BufferedReader(new FileReader(file));
-			String line;
-			while((line=reader.readLine())!=null) {
-				String[] split=line.split("\t");
-				String question=split[0];
-				String answer=split[1];
-				questions.put(question, answer);
-			}
-			reader.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/******************************************************************************************
-	 * 
-	 * @param args
-	 * @return
-	 */
-	private String toPath(String... args) {
-		if(args!=null) {
-			String path=System.getProperty("user.home");
-			for(String arg: args) {
-				path+="/"+arg;
-			}
-			return path;
-		}
-		return null;
 	}
 
 }

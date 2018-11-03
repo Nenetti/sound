@@ -53,8 +53,10 @@ public class Recognition extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		recognition_en.start(connectedNode);
-		recognition_jp.start(connectedNode);
+		recognition_en.connect(connectedNode);
+		recognition_jp.connect(connectedNode);
+		NodeHandle.duration(1000);
+		recognition_en.resume();
 	}
 	
 }
