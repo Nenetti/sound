@@ -48,10 +48,10 @@ public class Julius {
 	 * @param host
 	 * @param port
 	 */
-	public Julius(final String host, final int port) {
+	public Julius(String jconf, String host, int port) {
 		this.host=host;
 		this.port=port;
-		run("bash", exec, String.valueOf(port));
+		run("bash", exec, jconf, String.valueOf(port));
 		socket_connect();
 	}
 	
@@ -125,7 +125,7 @@ public class Julius {
 	 */
 	private Result getResult() {
 		String line;
-		while(true) {
+		while(!socket.isClosed()&&socket.isConnected()) {
 			try {
 				line=reader.readLine();
 				if(line!=null) {
@@ -156,6 +156,7 @@ public class Julius {
 				return null;
 			}
 		}
+		return null;
 	}
 
 	/******************************************************************************************
@@ -213,14 +214,14 @@ public class Julius {
 	 */
 	public boolean isConnected() {
 		if(socket!=null) {
-			return socket.isConnected();
+			return !socket.isClosed()&&socket.isConnected();
 		}
 		return false;
 	}
 	
 	public class Result {
-		String result;
-		double score;
+		public String result;
+		public double score;
 		public Result(String result, double score) {
 			this.result=result;
 			this.score=score;

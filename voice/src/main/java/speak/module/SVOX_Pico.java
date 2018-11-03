@@ -1,29 +1,31 @@
 
 package speak.module;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+
+import process.Terminal;
 
 
 
 public class SVOX_Pico {
 	
-	
-	private String shellFile="svox.sh";
-	
-	private String storagePath;
-	private String fileName;
-	
+	private String shell="svox.sh";
+	private String home=System.getProperty("user.home");
+	private String path;
+	private String[] exec_play;
+
 	/******************************************************************************************
 	 * 
 	 * コンストラクター
 	 * 
-	 * @param storagePath
+	 * @param path
 	 * @param fileName
 	 */
-	public SVOX_Pico(String storagePath, String fileName) {
-		this.storagePath=storagePath;
-		this.fileName=fileName;
+	public SVOX_Pico(String path, String fileName) {
+		this.path=path;
+		this.exec_play=new String[]{"aplay", home+"/"+path+"/"+fileName+".wav"};
 	}
 	
 	/******************************************************************************************
@@ -34,7 +36,7 @@ public class SVOX_Pico {
 	 */
 	public void speak(String text) {
 		createVoice(text);
-		execute("aplay "+toPath(storagePath, fileName+".wav"), true, false);
+		Terminal.execute(exec_play, true, false);
 	}
 	
 	/******************************************************************************************
@@ -44,58 +46,7 @@ public class SVOX_Pico {
 	 * @param text
 	 */
 	private void createVoice(String text) {
-		execute("bash "+toPath(storagePath, shellFile)+" "+text, true, false);
+		String[] exec_create=new String[]{"bash", home+"/"+path+"/"+shell, text};
+		Terminal.execute(exec_create, true, false);
 	}
-	
-	/******************************************************************************************
-	 * @param command
-	 * @param isWait
-	 */
-	private Process execute(String command, boolean isWait, boolean isInheritIO) {
-		try {
-			ProcessBuilder builder=new ProcessBuilder(toProcessCommand(command));
-			if(isInheritIO) {
-				builder.inheritIO();
-			}
-			Process process=builder.start();
-			if(isWait) {
-				process.waitFor();
-			}
-			return process;
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
-
-	/******************************************************************************************
-	 * 
-	 * @param args
-	 * @return
-	 */
-	private String toPath(String... args) {
-		if(args!=null) {
-			String path=System.getProperty("user.home");
-			for(String arg: args) {
-				path+="/"+arg;
-			}
-			return path;
-		}
-		return null;
-	}
-	
-	/******************************************************************************************
-	 * 
-	 * @param str
-	 * @return
-	 */
-	private List<String> toProcessCommand(String command){
-		List<String> result=new ArrayList<>();
-		String[] splits=command.split(" ");
-		for(String str:splits) {
-			result.add(str);
-		}
-		return result;
-	}
-	
 }

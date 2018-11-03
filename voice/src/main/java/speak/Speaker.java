@@ -5,9 +5,8 @@ import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.ros.node.topic.Publisher;
-import org.ros.node.topic.Subscriber;
 
+import ros.ServiceClient;
 import ros.ServiceServer;
 import speak.module.Open_JTalk;
 import speak.module.SVOX_Pico;
@@ -24,9 +23,9 @@ public class Speaker extends AbstractNodeMain {
 	Open_JTalk open_JTalk;
 	SVOX_Pico svox_Pico;
 	
-	private ServiceServer<std_msgs.String> subscriber_jp;
-	private ServiceServer<std_msgs.String> subscriber_en;
-	private Publisher<std_msgs.String> status_speaker;
+	private ServiceServer voice_server_en;
+	//private Publisher status_speaker;
+	private ServiceClient mic_client;
 	/******************************************************************************************
 	 * 
 	 * コンストラクター
@@ -50,43 +49,27 @@ public class Speaker extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		status_speaker=connectedNode.newPublisher("status/speaker", std_msgs.String._TYPE);
-		subscriber_jp = new ServiceServer<>(connectedNode, "sound/voice/speak_jp", std_msgs.String._TYPE);
-		subscriber_jp.addMessageListener(new MessageListener<std_msgs.String>() {
+		//status_speaker=new Publisher(connectedNode, "status/speaker", std_msgs.String._TYPE);
+		mic_client=new ServiceClient(connectedNode, "status/mic", std_msgs.String._TYPE);
+		voice_server_en=new ServiceServer(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
+		voice_server_en.addMessageListener(new MessageListener<Object>() {
 			@Override
-			public void onNewMessage(std_msgs.String message) {
+			public void onNewMessage(Object message) {
 				if(!isProcess) {
 					isProcess=true;
-					System.out.println(message.getData());
-					status_speaker.publish(createMessage("on"));
-					open_JTalk.speak(message.getData());
-					status_speaker.publish(createMessage("off"));
-					isProcess=false;
-					subscriber_jp.complete();
-				}
-			}
-		});
-		subscriber_en = new ServiceServer<>(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
-		subscriber_en.addMessageListener(new MessageListener<std_msgs.String>() {
-			@Override
-			public void onNewMessage(std_msgs.String message) {
-				if(!isProcess) {
-					isProcess=true;
-					System.out.println(message.getData());
-					status_speaker.publish(createMessage("on"));
-					svox_Pico.speak(message.getData());
-					status_speaker.publish(createMessage("off"));
-					isProcess=false;
-					subscriber_en.complete();
+					speak(((std_msgs.String)message).getData());
+					voice_server_en.complete();
 				}
 			}
 		});
 	}
 	
-	private std_msgs.String createMessage(String data) {
-		std_msgs.String message=status_speaker.newMessage();
-		message.setData(data);
-		return message;
+	public void speak(String data) {
+		System.out.println(data);
+		//mic_client.publish("off").waitForServer();
+		svox_Pico.speak(data);
+		//mic_client.publish("on").waitForServer();
+		isProcess=false;
 	}
 	
 }

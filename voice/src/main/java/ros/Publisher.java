@@ -4,38 +4,33 @@ import org.ros.node.ConnectedNode;
 
 import ros.MessageType.Type;
 
-public class Publisher<T>{
+public class Publisher{
 	
-	private org.ros.node.topic.Publisher<T> publisher;
-	private Type type;
+	private org.ros.node.topic.Publisher<Object> publisher;
+	public Type type;
 
 	public Publisher(ConnectedNode connectedNode, String topic, String type) {
-		publisher=connectedNode.newPublisher(topic, type);
 		this.type=Type.getType(type);
+		publisher=connectedNode.newPublisher(topic, type);
 	}
 	
-	@SuppressWarnings("unchecked")
 	public void publish(Object data) {
 		try {
+			Object message=publisher.newMessage();
 			switch (type) {
 			case String:
-				std_msgs.String string=((std_msgs.String)publisher.newMessage());
-				string.setData((String)data);
-				publisher.publish((T)string);
+				((std_msgs.String)message).setData((String)data);
 				break;
 			case Int32:
-				std_msgs.Int32 int32=((std_msgs.Int32)publisher.newMessage());
-				int32.setData((int)data);
-				publisher.publish((T)int32);
+				((std_msgs.Int32)message).setData((int)data);
 				break;
 			default:
-				System.out.println("未実装メッセージ型です");
+				System.out.println("未実装メッセージ型です. "+data);
 				break;
 			}
+			publisher.publish(message);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
-	
 }

@@ -1,6 +1,7 @@
 
 package recognition;
 
+import java.awt.geom.Area;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.File;
@@ -12,14 +13,14 @@ import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
-import org.ros.node.topic.Publisher;
-import org.ros.node.topic.Subscriber;
 
 import recognition.module.Julius;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
+import ros.Publisher;
 import ros.ServiceClient;
 import ros.ServiceServer;
+import ros.Subscriber;
 
 
 
@@ -33,11 +34,25 @@ public class Recognition extends AbstractNodeMain {
 
 	private boolean isProcess=false;
 
-	private Subscriber<std_msgs.String> status_mic;
-	private ServiceServer<std_msgs.String> command;
+	private ServiceServer mic_server;
+	private Publisher mic_publisher;
+	private Publisher se_publisher;
+	private ServiceClient voice_client;
 	private Julius julius;
+	private Julius julius_question;
 
 	
+	/******************************************************************************************
+	 * 
+	 * コンストラクター
+	 * 
+	 */
+	public Recognition() {
+		julius = new Julius("word.jconf", "localhost", 10500);
+		julius_question = new Julius("response.jconf", "localhost", 10501);
+		loadQuestions();
+	}
+
 	/******************************************************************************************
 	 * 
 	 */
@@ -52,59 +67,80 @@ public class Recognition extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		julius = new Julius("localhost", 10500);
-		status_mic = connectedNode.newSubscriber("status/mic", std_msgs.String._TYPE);
-		status_mic.addMessageListener(new MessageListener<std_msgs.String>() {
+		voice_client=new ServiceClient(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
+		mic_publisher=new Publisher(connectedNode, "status/mic", std_msgs.String._TYPE);
+		mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
+		mic_server.addMessageListener(new MessageListener<Object>() {
 			@Override
-			public void onNewMessage(std_msgs.String message) {
+			public void onNewMessage(Object message) {
 				if(message!=null) {
-					switch (message.getData()) {
+					String data=((std_msgs.String)message).getData();
+					switch (data) {
 					case "ON":case "on":
-						julius.pause();
-						break;
-					case "OFF":case "off":
 						julius.resume();
 						break;
+					case "OFF":case "off":
+						julius.pause();
+						julius_question.pause();
+						break;
 					}
+					mic_server.complete();
 				}
 			}			
 		});
-		loadQuestions();
-		Publisher<std_msgs.String> publisher=connectedNode.newPublisher("sound/voice/speak", std_msgs.String._TYPE);
-		
+		answerThread();
 	}
-	
+
+
 	public void answerThread() {
-		while(!julius.isConnected())
+		//接続待機
+		while(!julius.isConnected()||!julius_question.isConnected()) {NodeHandle.duration(1);}
+		julius_question.pause();
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				NodeHandle.duration(1000);
-				//julius.playWav("active");
-				while(true) {
-					if(julius.isConnected()) {
-						Result result=julius.recognition();
-						if(result!=null) {
-							status_mic.publish("off");
-							result=result.replaceAll("_", " ");
-							String answer=questions.get(result);
-							if(answer==null) {
-								answer="Sorry I don't know what you say";
+				//se_publisher.publish("active");
+				System.out.println("開始");
+				while(julius.isConnected()) {
+					Result result=julius.recognition();
+					if(result!=null&&result.result!=null) {
+						//mic_publisher.publish("off");
+						String recognition=result.result.replaceAll("_", " ");
+						String answer=questions.get(recognition);
+						if(answer!=null) {
+							if(result.score>0.9) {
+								String question="Sorry,, Are you Said,,, "+recognition;
+								julius.pause();
+								voice_client.publish(question).waitForServer();
+								julius_question.resume();
+								Result response=null;
+								while((response=julius_question.recognition())==null);
+								julius_question.pause();
+								switch (response.result) {
+								case "Yes":
+									answer="OK, "+answer;
+									break;
+								case "No":
+									answer="Sorry, I can't answer your question.";
+									break;
+								}
+							}else if(result.score>=0.5) {
+								
 							}
-							System.out.println("A: "+answer);
-							publisher_en.publish(answer);
-							publisher_en.waitForServer();
-							julius_en.playWav("active");
-							status_mic.publish(createMessage("on"));
-							julius_en.resume();
+						}else {
+							answer="Sorry, I can't answer your question.";
 						}
+						System.out.println("A: "+answer);
+						voice_client.publish(answer).waitForServer();
+						julius.resume();
+					}else {
+						//mic_publisher.publish("off");
 					}
-					duration(10);
 				}
 			}
 		}).start();
 	}
-	
+
 
 	public void loadQuestions() {
 		try {
@@ -139,5 +175,5 @@ public class Recognition extends AbstractNodeMain {
 		}
 		return null;
 	}
-	
+
 }
