@@ -10,11 +10,11 @@ public class MessageType {
 	
 	public enum Type {
 		String("std_msgs/String"),
-		Int32("std_msgs/Int32");
-		
-		
-		
-		
+		Int32("std_msgs/Int32"),
+		Marker("visualization_msgs/Marker"),
+		MarkerArray("visualization_msgs/MarkerArray"),
+		LaserScan("sensor_msgs/LaserScan"),
+		TF2("tf2_msgs/TFMessage");
 		
 		
 		

@@ -1,5 +1,8 @@
 package ros;
 
+import java.util.List;
+
+import org.ros.internal.node.topic.TopicParticipant;
 import org.ros.node.ConnectedNode;
 
 import ros.MessageType.Type;
@@ -14,6 +17,7 @@ public class Publisher{
 		publisher=connectedNode.newPublisher(topic, type);
 	}
 	
+	@SuppressWarnings("unchecked")
 	public void publish(Object data) {
 		try {
 			Object message=publisher.newMessage();
@@ -24,13 +28,23 @@ public class Publisher{
 			case Int32:
 				((std_msgs.Int32)message).setData((int)data);
 				break;
-			default:
-				System.out.println("未実装メッセージ型です. "+data);
+			case LaserScan:
+				break;
+			case Marker:
+				break;
+			case MarkerArray:
+				((visualization_msgs.MarkerArray)message).setMarkers((List<visualization_msgs.Marker>)data);
+				break;
+			case TF2:
 				break;
 			}
 			publisher.publish(message);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public Object newMessage() {
+		return publisher.newMessage();
 	}
 }

@@ -16,7 +16,6 @@ import ros.ServiceServer;
 
 public class Recognition_en extends Abstarct_Recognition{
 
-	private String path="ros/sound/julius";
 	private String questionsName="quize.txt";
 
 	public static Recognition_en instance=null;
@@ -45,14 +44,15 @@ public class Recognition_en extends Abstarct_Recognition{
 	 * rosjavaのメインメソッド
 	 */
 	public void connect(ConnectedNode connectedNode) {
-		voice_client=new ServiceClient(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
-		mic_publisher=new Publisher(connectedNode, "status/mic", std_msgs.String._TYPE);
-		mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
-		mic_server.addMessageListener(new MessageListener<Object>() {
+		super.voice_client=new ServiceClient(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
+		//super.mic_publisher=new Publisher(connectedNode, "status/mic", std_msgs.String._TYPE);
+		super.mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
+		super.mic_server.addMessageListener(new MessageListener<Object>() {
 			@Override
 			public void onNewMessage(Object message) {
 				if(message!=null) {
 					String data=((std_msgs.String)message).getData();
+					System.out.println("受信: "+data);
 					switch (data) {
 					case "ON":case "on":
 						julius.resume();
@@ -67,9 +67,6 @@ public class Recognition_en extends Abstarct_Recognition{
 		});
 		answerThread();
 	}
-
-
-
 
 	/******************************************************************************************
 	 * 

@@ -1,18 +1,19 @@
 
 package recognition;
 
+import org.ros.message.MessageListener;
 import org.ros.node.ConnectedNode;
 
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
 import ros.ServiceClient;
+import ros.ServiceServer;
 
 
 
 
 public class Recognition_jp extends Abstarct_Recognition{
 
-	private String path="ros/sound/julius";
 	private String questionsName="quize.txt";
 
 	public static Recognition_jp instance=null;
@@ -32,7 +33,6 @@ public class Recognition_jp extends Abstarct_Recognition{
 		super.CAUTION="イエスかノーで答えてください";
 		super.OK="OK,, ";
 		instance=this;
-		instance=this;
 		loadQuestions(toPath(path, questionsName));
 	}
 
@@ -41,14 +41,14 @@ public class Recognition_jp extends Abstarct_Recognition{
 	 * rosjavaのメインメソッド
 	 */
 	public void connect(ConnectedNode connectedNode) {
-		voice_client=new ServiceClient(connectedNode, "sound/voice/speak_jp", std_msgs.String._TYPE);
-		/*mic_publisher=new Publisher(connectedNode, "status/mic", std_msgs.String._TYPE);
-		mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
-		mic_server.addMessageListener(new MessageListener<Object>() {
+		super.voice_client=new ServiceClient(connectedNode, "sound/voice/speak_jp", std_msgs.String._TYPE);
+		super.mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
+		super.mic_server.addMessageListener(new MessageListener<Object>() {
 			@Override
 			public void onNewMessage(Object message) {
 				if(message!=null) {
 					String data=((std_msgs.String)message).getData();
+					System.out.println("受信: "+data);
 					switch (data) {
 					case "ON":case "on":
 						julius.resume();
@@ -60,13 +60,14 @@ public class Recognition_jp extends Abstarct_Recognition{
 					mic_server.complete();
 				}
 			}			
-		});*/
+		});
 		answerThread();
 	}
 
-	
-	
-
+	/******************************************************************************************
+	 * 
+	 * 
+	 */
 	public void answerThread() {
 		//接続待機
 		while(!julius.isConnected()) {NodeHandle.duration(1);}

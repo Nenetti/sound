@@ -6,6 +6,7 @@ import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 
+import ros.ServiceClient;
 import ros.ServiceServer;
 import speak.module.VoiceMaker;
 
@@ -26,7 +27,7 @@ public class Speaker extends AbstractNodeMain {
 	private ServiceServer voice_server_jp;
 	private ServiceServer voice_server_en;
 	//private Publisher status_speaker;
-	//private ServiceClient mic_client;
+	private ServiceClient mic_client;
 	private VoiceMaker voice_jp;
 	private VoiceMaker voice_en;	
 	
@@ -54,7 +55,7 @@ public class Speaker extends AbstractNodeMain {
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
 		//status_speaker=new Publisher(connectedNode, "status/speaker", std_msgs.String._TYPE);
-		//mic_client=new ServiceClient(connectedNode, "status/mic", std_msgs.String._TYPE);
+		mic_client=new ServiceClient(connectedNode, "status/mic", std_msgs.String._TYPE);
 		voice_server_jp=new ServiceServer(connectedNode, "sound/voice/speak_jp", std_msgs.String._TYPE);
 		voice_server_en=new ServiceServer(connectedNode, "sound/voice/speak_en", std_msgs.String._TYPE);
 		voice_server_jp.addMessageListener(new MessageListener<Object>() {
@@ -62,8 +63,10 @@ public class Speaker extends AbstractNodeMain {
 			public void onNewMessage(Object message) {
 				if(!isProcess) {
 					isProcess=true;
+					mic_client.publish("OFF");
 					speak(((std_msgs.String)message).getData(), Language.jp);
 					voice_server_jp.complete();
+					mic_client.publish("ON");
 				}
 			}
 		});
@@ -72,8 +75,10 @@ public class Speaker extends AbstractNodeMain {
 			public void onNewMessage(Object message) {
 				if(!isProcess) {
 					isProcess=true;
+					mic_client.publish("OFF");
 					speak(((std_msgs.String)message).getData(), Language.en);
 					voice_server_en.complete();
+					mic_client.publish("ON");
 				}
 			}
 		});

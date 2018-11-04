@@ -45,5 +45,4 @@ public class Recognition extends AbstractNodeMain {
 		NodeHandle.duration(1000);
 		recognition_en.resume();
 	}
-	
 }

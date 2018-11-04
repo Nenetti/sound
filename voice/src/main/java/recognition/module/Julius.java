@@ -72,12 +72,12 @@ public class Julius {
 						socket=new Socket();
 						InetSocketAddress address=new InetSocketAddress(host, port);
 						socket.connect(address, 1000000000);
-						System.out.println("Julius Connect SUCCESSFUL");
+						System.out.println("Julius Connect SUCCESSFUL: "+port);
 						reader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
 						stream=socket.getOutputStream();
 						break;
 					} catch (Exception e) {
-						System.out.println("Connected Failed "+port);
+						System.out.println("Connected Failed: "+port);
 						NodeHandle.duration(100);
 					}
 				}
