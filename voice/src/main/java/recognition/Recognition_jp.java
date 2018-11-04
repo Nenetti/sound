@@ -40,9 +40,9 @@ public class Recognition_jp extends Abstarct_Recognition{
 	 * 
 	 * rosjavaのメインメソッド
 	 */
-	public void connect(ConnectedNode connectedNode) {
-		super.voice_client=new ServiceClient(connectedNode, "sound/voice/speak_jp", std_msgs.String._TYPE);
-		super.mic_server = new ServiceServer(connectedNode, "status/mic", std_msgs.String._TYPE);
+	public void connect() {
+		super.voice_client=new ServiceClient("sound/voice/speak_jp", std_msgs.String._TYPE);
+		super.mic_server = new ServiceServer("status/mic", std_msgs.String._TYPE);
 		super.mic_server.addMessageListener(new MessageListener<Object>() {
 			@Override
 			public void onNewMessage(Object message) {

@@ -2,9 +2,6 @@ package ros;
 
 import java.util.List;
 
-import org.ros.internal.node.topic.TopicParticipant;
-import org.ros.node.ConnectedNode;
-
 import ros.MessageType.Type;
 
 public class Publisher{
@@ -12,9 +9,9 @@ public class Publisher{
 	private org.ros.node.topic.Publisher<Object> publisher;
 	public Type type;
 
-	public Publisher(ConnectedNode connectedNode, String topic, String type) {
+	public Publisher(String topic, String type) {
 		this.type=Type.getType(type);
-		publisher=connectedNode.newPublisher(topic, type);
+		publisher=NodeHandle.connectedNode().newPublisher(topic, type);
 	}
 	
 	@SuppressWarnings("unchecked")

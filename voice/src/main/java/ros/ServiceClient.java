@@ -1,7 +1,6 @@
 package ros;
 
 import org.ros.message.MessageListener;
-import org.ros.node.ConnectedNode;
 
 import ros.MessageType.Type;
 
@@ -15,20 +14,20 @@ public class ServiceClient {
 	private boolean isError=false;
 	private Type type;
 	
-	public ServiceClient(ConnectedNode connectedNode, String topic, String type) {
-		constructor(connectedNode, topic, type, std_msgs.Int32._TYPE);
+	public ServiceClient(String topic, String type) {
+		constructor(topic, type, std_msgs.Int32._TYPE);
 	}
 	
-	public ServiceClient(ConnectedNode connectedNode, String topic, String publish_type, String subscribe_type) {
-		constructor(connectedNode, topic, publish_type, subscribe_type);
+	public ServiceClient(String topic, String publish_type, String subscribe_type) {
+		constructor(topic, publish_type, subscribe_type);
 	}
 	
-	public void constructor(ConnectedNode connectedNode, String topic, String publish_type, String subscribe_type) {
+	public void constructor(String topic, String publish_type, String subscribe_type) {
 		String server_topic=topic+"_"+"server";
 		String client_topic=topic+"_"+"client";
 		this.type=Type.getType(subscribe_type);
-		this.subscriber=new Subscriber(connectedNode, client_topic, subscribe_type);
-		this.publisher=new Publisher(connectedNode, server_topic, publish_type);
+		this.subscriber=new Subscriber(client_topic, subscribe_type);
+		this.publisher=new Publisher(server_topic, publish_type);
 		this.subscriber.addMessageListener(new MessageListener<Object>() {
 			@Override
 			public void onNewMessage(Object message) {
@@ -38,6 +37,14 @@ public class ServiceClient {
 					break;
 				case String:
 					result=((std_msgs.String)message).getData();
+					break;
+				case LaserScan:
+					break;
+				case Marker:
+					break;
+				case MarkerArray:
+					break;
+				case TF2:
 					break;
 				}
 				isResponse=true;

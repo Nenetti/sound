@@ -1,9 +1,15 @@
 package ros;
 
+import org.ros.node.ConnectedNode;
 
 public class NodeHandle {
 	
+	private static ConnectedNode connectedNode;
 	
+	
+	public static void init(ConnectedNode connectedNode) {
+		NodeHandle.connectedNode=connectedNode;
+	}
 	
 	/******************************************************************************************
 	 * 
@@ -15,5 +21,9 @@ public class NodeHandle {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static ConnectedNode connectedNode() {
+		return connectedNode;
 	}
 }
