@@ -47,7 +47,22 @@ public class Recognition_en extends Abstarct_Recognition{
 		super.voice_client=new ServiceClient("sound/voice/speak_en", std_msgs.String._TYPE);
 		//super.mic_publisher=new Publisher(connectedNode, "status/mic", std_msgs.String._TYPE);
 		super.mic_server = new ServiceServer("status/mic", std_msgs.String._TYPE);
-		super.mic_server.addMessageListener(new MessageListener<Object>() {
+		super.mic_server.addMessageListener((Object message)->{
+			if(message!=null) {
+				String data=((std_msgs.String)message).getData();
+				System.out.println("受信: "+data);
+				switch (data) {
+				case "ON":case "on":
+					julius.resume();
+					break;
+				case "OFF":case "off":
+					julius.pause();
+					break;
+				}
+				mic_server.complete();
+			}
+		});
+		/*super.mic_server.addMessageListener(new MessageListener<Object>() {
 			@Override
 			public void onNewMessage(Object message) {
 				if(message!=null) {
@@ -64,7 +79,7 @@ public class Recognition_en extends Abstarct_Recognition{
 					mic_server.complete();
 				}
 			}			
-		});
+		});*/
 		answerThread();
 	}
 

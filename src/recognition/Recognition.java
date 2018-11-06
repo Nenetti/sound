@@ -11,6 +11,7 @@ import ros.NodeHandle;
 
 
 
+
 public class Recognition extends AbstractNodeMain {
 
 	private Recognition_en recognition_en;
