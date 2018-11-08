@@ -22,7 +22,7 @@ import sensor_msgs.LaserScan;
 
 
 
-public class Main extends AbstractNodeMain {
+public class Main extends NodeHandle {
 
 
 	private Subscriber subscriber;
@@ -44,8 +44,7 @@ public class Main extends AbstractNodeMain {
 
 
 	@Override
-	public void onStart(ConnectedNode connectedNode) {
-		NodeHandle.init(connectedNode);
+	public void start() {
 		this.rviz=new Rviz("rviz/test");
 		subscriber=new Subscriber("/scan", LaserScan._TYPE);
 		subscriber.addMessageListener((message) -> {
