@@ -26,7 +26,6 @@ public class Main extends AbstractNodeMain {
 
 
 	private Subscriber subscriber;
-	private Transform odometry;
 	private Rviz rviz;
 	private Color[] colors;
 
@@ -49,14 +48,13 @@ public class Main extends AbstractNodeMain {
 		NodeHandle.init(connectedNode);
 		this.rviz=new Rviz("rviz/test");
 		subscriber=new Subscriber("/scan", LaserScan._TYPE);
-		subscriber.addMessageListener(new MessageListener<Object>() {
-			@Override
-			public void onNewMessage(Object message) {
-				LaserScan data=((LaserScan)message);
-				double angle=data.getAngleMin();
-				int ci=0;
-				for(int i=1;i<data.getRanges().length;i++) {
-					if(Math.abs(data.getRanges()[i]-data.getRanges()[i-1])>1) {ci++;}
+		subscriber.addMessageListener((message) -> {
+			LaserScan data=((LaserScan)message);
+			double angle=data.getAngleMin();
+			int ci=0;
+			int element=0;
+			for(int i=0;i<data.getRanges().length-1;i++) {
+				if(Math.abs(data.getRanges()[i]-data.getRanges()[i+1])<0.3||element>1) {
 					double x=data.getRanges()[i]*Math.cos(angle);
 					double y=data.getRanges()[i]*Math.sin(angle);
 					if(!Double.isFinite(x)) {x=0;}
@@ -70,9 +68,13 @@ public class Main extends AbstractNodeMain {
 					marker.setScale(0.08);
 					marker.setColor(colors[ci]);
 					rviz.addMarker(marker);
+					element++;
+				}else {
+					ci++;
+					element=0;
 				}
-				rviz.publish();
 			}
-		});	
+			rviz.publish();
+		});
 	}
 }

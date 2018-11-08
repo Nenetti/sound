@@ -23,7 +23,7 @@ public class Speaker extends AbstractNodeMain {
 	public enum Language {
 		jp,
 		en;
-	} 
+	}
 
 	private ServiceServer voice_server_jp;
 	private ServiceServer voice_server_en;
