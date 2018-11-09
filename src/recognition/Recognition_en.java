@@ -27,7 +27,7 @@ public class Recognition_en extends Abstarct_Recognition{
 	 * 
 	 */
 	public Recognition_en() {
-		super("word_en.jconf", "localhost", 10500);
+		super("session_en.jconf", "localhost", 10500);
 		super.REPEAT="OK, Please repeat once more your question.";
 		super.NOANSWER="Sorry, I can't answer your question.";
 		super.QUESTION="Sorry,, Are you Said,,, ";

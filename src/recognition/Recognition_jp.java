@@ -30,7 +30,7 @@ public class Recognition_jp extends Abstarct_Recognition{
 	 * 
 	 */
 	public Recognition_jp() {
-		super("word_jp.jconf", "localhost", 10501);
+		super("session_jp.jconf", "localhost", 10501);
 		super.REPEAT="OK。もう一度繰り返してください";
 		super.NOANSWER="すいません。その質問には答えられません";
 		super.QUESTION="すいません。あなたは";
