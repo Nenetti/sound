@@ -12,7 +12,7 @@ import ros.NodeHandle;
 
 
 
-public class Recognition extends AbstractNodeMain {
+public class Recognition extends NodeHandle {
 
 	private Recognition_en recognition_en;
 	private Recognition_jp recognition_jp;
@@ -37,10 +37,10 @@ public class Recognition extends AbstractNodeMain {
 
 	/******************************************************************************************
 	 * 
-	 * rosjavaのメインメソッド
+	 * 
 	 */
 	@Override
-	public void onStart(ConnectedNode connectedNode) {
+	public void start() {
 		recognition_en.connect();
 		recognition_jp.connect();
 		NodeHandle.duration(1000);

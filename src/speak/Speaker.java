@@ -14,7 +14,7 @@ import speak.module.VoiceMaker;
 
 
 
-public class Speaker extends AbstractNodeMain {
+public class Speaker extends NodeHandle {
 
 	private String storagePath="ros/sound";
 	private String fileName="voice";
@@ -47,10 +47,29 @@ public class Speaker extends AbstractNodeMain {
 
 	/******************************************************************************************
 	 * 
-	 * メインメソッド
+	 * @param text
+	 * @param language
+	 */
+	public void speak(String text, Language language) {
+		System.out.println(language+" : "+text);
+		//mic_client.publish("off").waitForServer();
+		switch (language) {
+		case English:
+			voice_en.speak(text);
+			break;
+		case Japanese:
+			voice_jp.speak(text);
+			break;
+		}
+		//mic_client.publish("on").waitForServer();
+		isProcess=false;
+	}
+
+	/******************************************************************************************
+	 * 
 	 */
 	@Override
-	public void onStart(ConnectedNode connectedNode) {
+	public void start() {
 		//status_speaker=new Publisher(connectedNode, "status/speaker", std_msgs.String._TYPE);
 		mic_client=new ServiceClient("status/mic", std_msgs.String._TYPE);
 		voice_server_jp=new ServiceServer("sound/voice/speak_jp", std_msgs.String._TYPE);
@@ -79,21 +98,6 @@ public class Speaker extends AbstractNodeMain {
 				}
 			}
 		});
-	}
-
-	public void speak(String text, Language language) {
-		System.out.println(language+" : "+text);
-		//mic_client.publish("off").waitForServer();
-		switch (language) {
-		case English:
-			voice_en.speak(text);
-			break;
-		case Japanese:
-			voice_jp.speak(text);
-			break;
-		}
-		//mic_client.publish("on").waitForServer();
-		isProcess=false;
 	}
 
 }

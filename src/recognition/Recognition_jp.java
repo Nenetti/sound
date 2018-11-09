@@ -17,12 +17,10 @@ import ros.ServiceServer;
 
 public class Recognition_jp extends Abstarct_Recognition{
 
-	private String questionsName="quize.txt";
+	private String questionsName="/dictionary/session.csv";
 
 	public static Recognition_jp instance=null;
 	
-	private Language language=Language.Japanese;
-
 
 	/******************************************************************************************
 	 * 
@@ -37,6 +35,7 @@ public class Recognition_jp extends Abstarct_Recognition{
 		super.QUESTION2="、と言いましたか？ ";
 		super.CAUTION="イエスかノーで答えてください";
 		super.OK="OK,, ";
+		super.language=Language.Japanese;
 		instance=this;
 		loadQuestions(toPath(path, questionsName));
 	}
@@ -82,39 +81,28 @@ public class Recognition_jp extends Abstarct_Recognition{
 				while(julius.isConnected()) {
 					if(!isStop) {
 						Result result=julius.recognition();
-						if(result!=null&&result.result!=null) {
-							//mic_publisher.publish("off");
-							String recognition=result.result.replaceAll("_", " ");
-							if(recognition.equals("言語変更")) {
-								switch (toQuestion("言語変更しますか？")) {
-								case Yes:
-									changeLanguage(true, language);
-									break;
-								case No:
-									changeLanguage(false, language);
-									break;
-								}
-								continue;
-							}
+						if(result!=null) {
 							String answer=null;
-							Sessions sessions=dictionary.getSession(recognition, language);
-							if(sessions!=null) {
-								Session session=sessions.getSession(language);
-								if(session!=null) {
-									if(result.score==1.0) {
-										//おそらく正解
-										answer=session.answer;
-									}else {
-										//精度が微妙なので確認を取る
-										String question=QUESTION+recognition+QUESTION2;
-										switch (toQuestion(question)) {
-										case Yes:
-											answer=OK+session.answer;
-											break;
-										case No:
-											answer=REPEAT;
-											break;
-										}
+							Session session=dictionary.getSession(result.sentence, language);
+							if(session!=null) {
+								if(isQuestion(session.answer)){continue;}
+								if(isTrash(session.answer)){continue;}
+								if(isSystemCall(session.answer)) {
+									//SystemCall
+									continue;
+								}
+								if(result.score==1.0) {
+									//おそらく正解
+									answer=session.answer;
+								}else {
+									//精度が微妙なので確認を取る
+									switch (toQuestion(QUESTION+result.sentence+QUESTION2)) {
+									case Yes:
+										answer=OK+session.answer;
+										break;
+									case No:
+										answer=REPEAT;
+										break;
 									}
 								}
 							}

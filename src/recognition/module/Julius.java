@@ -139,8 +139,8 @@ public class Julius {
 							case WHYPO_WORD:
 								String[] split=line.split("\"");
 								double score=Double.valueOf(split[7]);
-								System.out.println(score+" : "+split[1].replace('^', ' '));
-								String result=split[1].replace('^', ' ');
+								String result=split[1].replaceAll("_", " ");
+								System.out.println(score+" : "+result);
 								return new Result(result, score);
 							case REJECTED_REASON:
 								return null;
@@ -222,10 +222,10 @@ public class Julius {
 	}
 	
 	public class Result {
-		public String result;
+		public String sentence;
 		public double score;
-		public Result(String result, double score) {
-			this.result=result;
+		public Result(String sentence, double score) {
+			this.sentence=sentence;
 			this.score=score;
 		}
 	}

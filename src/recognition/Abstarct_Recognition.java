@@ -4,6 +4,7 @@ package recognition;
 
 import dictionary.Dictionary;
 import dictionary.Language;
+import dictionary.Session;
 import recognition.module.Julius;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
@@ -16,8 +17,6 @@ import ros.ServiceServer;
 public abstract class Abstarct_Recognition {
 
 	protected String path="ros/sound/julius";
-	protected String questionsName="quize.txt";
-
 
 	protected String REPEAT;
 	protected String NOANSWER;
@@ -36,6 +35,8 @@ public abstract class Abstarct_Recognition {
 	protected Julius julius;
 	
 	protected boolean isStop;
+	
+	protected Language language;
 	
 	public enum Response {
 		Yes,
@@ -105,7 +106,7 @@ public abstract class Abstarct_Recognition {
 		while(true) {
 			Result response=null;
 			while((response=julius.recognition())==null);
-			switch (response.result) {
+			switch (response.sentence) {
 			case "YES":case "Yes":case "yes":case "はい":
 				return OK+answer;
 			case "NO":case "No":case "no":case "いいえ":
@@ -128,19 +129,54 @@ public abstract class Abstarct_Recognition {
 		publishVoice(question);
 		while(true) {
 			Result response=null;
+			//nullの間はwhileで繰り返す
 			while((response=julius.recognition())==null);
-			switch (response.result) {
-			case "YES":case "Yes":case "yes":
-				return Response.Yes;
-			case "NO":case "No":case "no":
-				return Response.No;
-			default:
-				publishVoice(CAUTION);
-				continue;
+			Session session=dictionary.getSession(response.sentence, language);
+			if(session!=null) {
+				switch (session.answer) {
+				case "Yes":
+					return Response.Yes;
+				case "No":
+					return Response.No;
+				default:
+					publishVoice(CAUTION);
+					continue;
+				}
 			}
 		}
 	}
 	
+	protected boolean isQuestion(String question) {
+		Session session=dictionary.getSession(question, language);
+		if(session!=null) {
+			switch (session.answer) {
+			case "Yes":
+			case "No":
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected boolean isTrash(String question) {
+		Session session=dictionary.getSession(question, language);
+		if(session!=null) {
+			if(session.answer.equals("Trash")) {
+				return true;
+			}
+		}
+		return false;
+	}
+	
+	protected boolean isSystemCall(String question) {
+		Session session=dictionary.getSession(question, language);
+		if(session!=null) {
+			if(session.answer.equals("System Call")) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	protected void loadQuestions(String path) {
 		try {
