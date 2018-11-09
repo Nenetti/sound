@@ -55,9 +55,6 @@ public class Speaker extends AbstractNodeMain {
 	 */
 	@Override
 	public void onStart(ConnectedNode connectedNode) {
-		System.out.println("\n\n"+NodeHandle.connectedNode()+"\n\n");
-		NodeHandle.init(connectedNode);
-		System.out.println("\n\n"+NodeHandle.connectedNode()+"\n\n");
 		//status_speaker=new Publisher(connectedNode, "status/speaker", std_msgs.String._TYPE);
 		mic_client=new ServiceClient("status/mic", std_msgs.String._TYPE);
 		voice_server_jp=new ServiceServer("sound/voice/speak_jp", std_msgs.String._TYPE);

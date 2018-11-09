@@ -73,6 +73,6 @@
 	<classpathentry kind="lib" path="/home/ubuntu/catkin_ws_java/lib/ws-commons-util-1.0.1.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/catkin_ws_java/lib/xml-apis-1.0.b2.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/catkin_ws_java/lib/yocs_msgs-0.6.3.jar"/>
-	<classpathentry kind="lib" path="/home/ubuntu/catkin_ws_java/lib/ros-0.0.jar"/>
+	<classpathentry kind="lib" path="/home/ubuntu/catkin_ws_java/lib/library-0.0.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
