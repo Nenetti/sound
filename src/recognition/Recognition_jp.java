@@ -4,6 +4,9 @@ package recognition;
 import org.ros.message.MessageListener;
 import org.ros.node.ConnectedNode;
 
+import dictionary.Language;
+import dictionary.Session;
+import dictionary.Sessions;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
 import ros.ServiceClient;
@@ -17,6 +20,8 @@ public class Recognition_jp extends Abstarct_Recognition{
 	private String questionsName="quize.txt";
 
 	public static Recognition_jp instance=null;
+	
+	private Language language=Language.Japanese;
 
 
 	/******************************************************************************************
@@ -83,40 +88,37 @@ public class Recognition_jp extends Abstarct_Recognition{
 							if(recognition.equals("言語変更")) {
 								switch (toQuestion("言語変更しますか？")) {
 								case Yes:
-									changeLanguage(true, Language.jp);
+									changeLanguage(true, language);
 									break;
 								case No:
-									changeLanguage(false, Language.jp);
+									changeLanguage(false, language);
 									break;
 								}
 								continue;
 							}
-							String answer=questions.get(recognition);
-							if(answer!=null) {
-								if(result.score==1.0) {
-									//正解なのでanswerはそのまま
-								}else {
-									//精度が微妙なので確認を取る
-									String question=QUESTION+recognition+QUESTION2;
-									publishVoice(question);
-									while(true) {
-										Result response=null;
-										while((response=julius.recognition())==null);
-										switch (response.result) {
-										case "YES":case "Yes":case "yes":
-											answer=OK+answer;
+							String answer=null;
+							Sessions sessions=dictionary.getSession(recognition, language);
+							if(sessions!=null) {
+								Session session=sessions.getSession(language);
+								if(session!=null) {
+									if(result.score==1.0) {
+										//おそらく正解
+										answer=session.answer;
+									}else {
+										//精度が微妙なので確認を取る
+										String question=QUESTION+recognition+QUESTION2;
+										switch (toQuestion(question)) {
+										case Yes:
+											answer=OK+session.answer;
 											break;
-										case "NO":case "No":case "no":
+										case No:
 											answer=REPEAT;
 											break;
-										default:
-											publishVoice(CAUTION);
-											continue;
 										}
-										break;
 									}
 								}
-							}else {
+							}
+							if(answer==null) {
 								//聞き取れなかった
 								answer=NOANSWER;
 							}

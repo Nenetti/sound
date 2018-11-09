@@ -1,26 +1,15 @@
 
 package recognition;
 
-import java.awt.geom.Area;
-import java.io.BufferedOutputStream;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.util.HashMap;
 
-import org.ros.message.MessageListener;
-import org.ros.namespace.GraphName;
-import org.ros.node.AbstractNodeMain;
-import org.ros.node.ConnectedNode;
-
+import dictionary.Dictionary;
+import dictionary.Language;
 import recognition.module.Julius;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
 import ros.Publisher;
 import ros.ServiceClient;
 import ros.ServiceServer;
-import ros.Subscriber;
 
 
 
@@ -38,7 +27,7 @@ public abstract class Abstarct_Recognition {
 	protected String OK;
 	
 	
-	protected HashMap<String, String> questions;
+	protected Dictionary dictionary;
 
 	protected ServiceServer mic_server;
 	protected Publisher mic_publisher;
@@ -52,11 +41,6 @@ public abstract class Abstarct_Recognition {
 		Yes,
 		No;
 	}
-
-	public enum Language {
-		jp,
-		en;
-	} 
 	
 	/******************************************************************************************
 	 * 
@@ -67,14 +51,7 @@ public abstract class Abstarct_Recognition {
 		julius = new Julius(dic, host, post);
 		NodeHandle.duration(2000);
 		pause();
-	}
-
-	/******************************************************************************************
-	 * 
-	 * rosjavaのメインメソッド
-	 */
-	protected void connect(ConnectedNode connectedNode, String topic) {}
-	
+	}	
 
 	/******************************************************************************************
 	 * 
@@ -82,12 +59,12 @@ public abstract class Abstarct_Recognition {
 	public void changeLanguage(boolean isChange, Language language) {
 		if(isChange) {
 			switch (language) {
-			case en:
+			case English:
 				Recognition_en.instance.pause();
 				Recognition_jp.instance.resume();
 				Recognition_jp.instance.publishVoice("日本語に変更します");
 				break;
-			case jp:
+			case Japanese:
 				Recognition_jp.instance.pause();
 				Recognition_en.instance.resume();
 				Recognition_en.instance.publishVoice("Changed English.");
@@ -95,10 +72,10 @@ public abstract class Abstarct_Recognition {
 			}
 		}else {
 			switch (language) {
-			case en:
+			case English:
 				publishVoice("No changed.");
 				break;
-			case jp:
+			case Japanese:
 				publishVoice("キャンセルしました");
 				break;
 			}
@@ -167,17 +144,7 @@ public abstract class Abstarct_Recognition {
 
 	protected void loadQuestions(String path) {
 		try {
-			questions=new HashMap<>();
-			File file=new File(path);
-			BufferedReader reader=new BufferedReader(new FileReader(file));
-			String line;
-			while((line=reader.readLine())!=null) {
-				String[] split=line.split("\t");
-				String question=split[0];
-				String answer=split[1];
-				questions.put(question, answer);
-			}
-			reader.close();
+			this.dictionary=new Dictionary(path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

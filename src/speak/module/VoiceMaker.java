@@ -1,8 +1,8 @@
 
 package speak.module;
 
+import dictionary.Language;
 import process.Terminal;
-import speak.Speaker.Language;
 
 
 
@@ -22,10 +22,10 @@ public class VoiceMaker {
 	 */
 	public VoiceMaker(String path, String fileName, Language language) {
 		switch (language) {
-		case jp:
+		case Japanese:
 			shell="voice_text_web_api.sh";
 			break;
-		case en:
+		case English:
 			shell="svox.sh";
 			break;
 		}

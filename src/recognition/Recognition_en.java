@@ -1,14 +1,11 @@
 
 package recognition;
 
-
-
-import org.ros.message.MessageListener;
-import org.ros.node.ConnectedNode;
-
+import dictionary.Language;
+import dictionary.Session;
+import dictionary.Sessions;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
-import ros.Publisher;
 import ros.ServiceClient;
 import ros.ServiceServer;
 
@@ -19,6 +16,8 @@ public class Recognition_en extends Abstarct_Recognition{
 	private String questionsName="quize.txt";
 
 	public static Recognition_en instance=null;
+	
+	private Language language=Language.English;
 
 	
 
@@ -102,31 +101,37 @@ public class Recognition_en extends Abstarct_Recognition{
 							if(recognition.equals("Change Language")) {
 								switch (toQuestion("Do you want to Change Language ?")) {
 								case Yes:
-									changeLanguage(true, Language.en);
+									changeLanguage(true, language);
 									break;
 								case No:
-									changeLanguage(false, Language.en);
+									changeLanguage(false, language);
 									break;
 								}
 								continue;
 							}
-							String answer=questions.get(recognition);
-							if(answer!=null) {
-								if(result.score==1.0) {
-									//正解なのでanswerはそのまま
-								}else {
-									//精度が微妙なので確認を取る
-									String question=QUESTION+recognition+QUESTION2;
-									switch (toQuestion(question)) {
-									case Yes:
-										answer=OK+answer;
-										break;
-									case No:
-										answer=REPEAT;
-										break;
+							String answer=null;
+							Sessions sessions=dictionary.getSession(recognition, language);
+							if(sessions!=null) {
+								Session session=sessions.getSession(language);
+								if(session!=null) {
+									if(result.score==1.0) {
+										//おそらく正解
+										answer=session.answer;
+									}else {
+										//精度が微妙なので確認を取る
+										String question=QUESTION+recognition+QUESTION2;
+										switch (toQuestion(question)) {
+										case Yes:
+											answer=OK+session.answer;
+											break;
+										case No:
+											answer=REPEAT;
+											break;
+										}
 									}
 								}
-							}else {
+							}
+							if(answer==null) {
 								//聞き取れなかった
 								answer=NOANSWER;
 							}

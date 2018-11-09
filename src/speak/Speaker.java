@@ -6,6 +6,7 @@ import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 
+import dictionary.Language;
 import ros.NodeHandle;
 import ros.ServiceClient;
 import ros.ServiceServer;
@@ -20,11 +21,6 @@ public class Speaker extends AbstractNodeMain {
 
 	private boolean isProcess=false;
 
-	public enum Language {
-		jp,
-		en;
-	}
-
 	private ServiceServer voice_server_jp;
 	private ServiceServer voice_server_en;
 	//private Publisher status_speaker;
@@ -37,8 +33,8 @@ public class Speaker extends AbstractNodeMain {
 	 * コンストラクター
 	 */
 	public Speaker() {
-		this.voice_jp=new VoiceMaker(storagePath, fileName, Language.jp);
-		this.voice_en=new VoiceMaker(storagePath, fileName, Language.en);
+		this.voice_jp=new VoiceMaker(storagePath, fileName, Language.Japanese);
+		this.voice_en=new VoiceMaker(storagePath, fileName, Language.English);
 	}
 
 	/******************************************************************************************
@@ -65,7 +61,7 @@ public class Speaker extends AbstractNodeMain {
 				if(!isProcess) {
 					isProcess=true;
 					mic_client.publish("OFF");
-					speak(((std_msgs.String)message).getData(), Language.jp);
+					speak(((std_msgs.String)message).getData(), Language.Japanese);
 					voice_server_jp.complete();
 					mic_client.publish("ON");
 				}
@@ -77,7 +73,7 @@ public class Speaker extends AbstractNodeMain {
 				if(!isProcess) {
 					isProcess=true;
 					mic_client.publish("OFF");
-					speak(((std_msgs.String)message).getData(), Language.en);
+					speak(((std_msgs.String)message).getData(), Language.English);
 					voice_server_en.complete();
 					mic_client.publish("ON");
 				}
@@ -89,10 +85,10 @@ public class Speaker extends AbstractNodeMain {
 		System.out.println(language+" : "+text);
 		//mic_client.publish("off").waitForServer();
 		switch (language) {
-		case en:
+		case English:
 			voice_en.speak(text);
 			break;
-		case jp:
+		case Japanese:
 			voice_jp.speak(text);
 			break;
 		}
