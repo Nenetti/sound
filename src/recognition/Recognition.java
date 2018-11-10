@@ -2,11 +2,16 @@
 package recognition;
 
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.ros.namespace.GraphName;
 import org.ros.node.AbstractNodeMain;
 import org.ros.node.ConnectedNode;
 
+import dictionary.Language;
 import ros.NodeHandle;
+import ros.UserProperty;
 
 
 
@@ -14,19 +19,9 @@ import ros.NodeHandle;
 
 public class Recognition extends NodeHandle {
 
-	private Recognition_en recognition_en;
-	private Recognition_jp recognition_jp;
-	
-	/******************************************************************************************
-	 * 
-	 * コンストラクター
-	 * 
-	 */
-	public Recognition() {
-		recognition_en=new Recognition_en();
-		recognition_jp=new Recognition_jp();
-	}
-	
+	private Speech_Recognition recognition_en;
+	private Speech_Recognition recognition_jp;
+
 	/******************************************************************************************
 	 * 
 	 */
@@ -41,9 +36,17 @@ public class Recognition extends NodeHandle {
 	 */
 	@Override
 	public void start() {
-		recognition_en.connect();
-		recognition_jp.connect();
+		recognition_en=new Speech_Recognition(Language.English);
+		recognition_jp=new Speech_Recognition(Language.Japanese);
 		NodeHandle.duration(1000);
-		recognition_en.resume();
+		switch (UserProperty.get("julius.language")) {
+		case "English":
+			recognition_en.resume();
+			break;
+		case "Japanese":
+			recognition_jp.resume();
+			break;
+
+		}
 	}
 }

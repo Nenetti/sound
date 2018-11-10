@@ -16,16 +16,14 @@ import ros.ServiceServer;
 
 public abstract class Abstarct_Recognition {
 
-	protected String path="ros/sound/julius";
 
 	protected String REPEAT;
 	protected String NOANSWER;
 	protected String QUESTION;
-	protected String QUESTION2;
 	protected String CAUTION;
 	protected String OK;
-	
-	
+
+
 	protected Dictionary dictionary;
 
 	protected ServiceServer mic_server;
@@ -33,11 +31,11 @@ public abstract class Abstarct_Recognition {
 	protected Publisher se_publisher;
 	protected ServiceClient voice_client;
 	protected Julius julius;
-	
+
 	protected boolean isStop;
-	
+
 	protected Language language;
-	
+
 	public enum Response {
 		Yes,
 		No;
@@ -45,19 +43,21 @@ public abstract class Abstarct_Recognition {
 	
 	/******************************************************************************************
 	 * 
-	 * コンストラクター
-	 * 
+	 * @param dic
+	 * @param host
+	 * @param post
 	 */
-	protected Abstarct_Recognition(String dic, String host, int post) {
-		julius = new Julius(dic, host, post);
+	public void startup(String dic, String host, String post) {
+		julius = new Julius(dic, host, Integer.valueOf(post), language);
 		NodeHandle.duration(2000);
 		pause();
-	}	
+	}
 
 	/******************************************************************************************
 	 * 
 	 */
 	public void changeLanguage(boolean isChange, Language language) {
+		/*
 		if(isChange) {
 			switch (language) {
 			case English:
@@ -80,9 +80,9 @@ public abstract class Abstarct_Recognition {
 				publishVoice("キャンセルしました");
 				break;
 			}
-		}
+		}*/
 	}
-	
+
 	/******************************************************************************************
 	 * 
 	 * 
@@ -91,7 +91,7 @@ public abstract class Abstarct_Recognition {
 		isStop=true;
 		julius.pause();
 	}
-	
+
 	/******************************************************************************************
 	 * 
 	 * 
@@ -117,16 +117,17 @@ public abstract class Abstarct_Recognition {
 			}
 		}
 	}
-	
-	
+
+
 	protected void publishVoice(String text) {
 		julius.pause();
 		voice_client.publish(text).waitForServer();
 		julius.resume();
 	}
 
-	protected Response toQuestion(String question) {
-		publishVoice(question);
+	protected Response toQuestion(String template, String question) {
+		String sentence=template.replaceAll("\\$", question);
+		publishVoice(sentence);
 		while(true) {
 			Result response=null;
 			//nullの間はwhileで繰り返す
@@ -145,7 +146,7 @@ public abstract class Abstarct_Recognition {
 			}
 		}
 	}
-	
+
 	protected boolean isQuestion(String question) {
 		Session session=dictionary.getSession(question, language);
 		if(session!=null) {
@@ -157,7 +158,7 @@ public abstract class Abstarct_Recognition {
 		}
 		return false;
 	}
-	
+
 	protected boolean isTrash(String question) {
 		Session session=dictionary.getSession(question, language);
 		if(session!=null) {
@@ -167,7 +168,7 @@ public abstract class Abstarct_Recognition {
 		}
 		return false;
 	}
-	
+
 	protected boolean isSystemCall(String question) {
 		Session session=dictionary.getSession(question, language);
 		if(session!=null) {
@@ -180,26 +181,9 @@ public abstract class Abstarct_Recognition {
 
 	protected void loadQuestions(String path) {
 		try {
-			this.dictionary=new Dictionary(path);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-
-	/******************************************************************************************
-	 * 
-	 * @param args
-	 * @return
-	 */
-	protected String toPath(String... args) {
-		if(args!=null) {
-			String path=System.getProperty("user.home");
-			for(String arg: args) {
-				path+="/"+arg;
-			}
-			return path;
-		}
-		return null;
-	}
-
+	
 }

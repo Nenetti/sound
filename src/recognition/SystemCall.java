@@ -6,8 +6,9 @@ import dictionary.Session;
 public class SystemCall {
 	
 	/*
+	
 	public static void execute(Session session, Language language) {
-		if(type.equals("Change Language")) {
+		if(session.question.equals("Change Language")) {
 			switch (toQuestion("Do you want to "+session.question+" ?")) {
 			case Yes:
 				changeLanguage(true, language);

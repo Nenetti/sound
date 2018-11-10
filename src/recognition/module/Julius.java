@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
+import dictionary.Language;
 import process.Terminal;
 import ros.NodeHandle;
 
@@ -21,13 +22,14 @@ public class Julius {
 	private String host;
 	private String exec=home+"/"+path+"/"+shell;
 	private int port;
+	private Language language;
 
 	private BufferedReader reader;
 
 	private OutputStream stream;
 
 	private Socket socket;
-	
+
 	public String result;
 
 	enum type{
@@ -48,13 +50,14 @@ public class Julius {
 	 * @param host
 	 * @param port
 	 */
-	public Julius(String jconf, String host, int port) {
+	public Julius(String jconf, String host, int port, Language language) {
 		this.host=host;
 		this.port=port;
+		this.language=language;
 		run("bash", exec, jconf, String.valueOf(port));
 		socket_connect();
 	}
-	
+
 	private void run(String... command) {
 		Terminal.execute(command, false, false);
 	}
@@ -64,53 +67,50 @@ public class Julius {
 	 * juliusにソケットで接続 (認識結果を受け取るため)
 	 */
 	private void socket_connect() {
-		new Thread(new Runnable() {
-			@Override
-			public void run() {
-				while(true) {
-					try {
-						socket=new Socket();
-						InetSocketAddress address=new InetSocketAddress(host, port);
-						socket.connect(address, 1000000000);
-						System.out.println("Julius Connect SUCCESSFUL: "+port);
-						reader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-						stream=socket.getOutputStream();
-						break;
-					} catch (Exception e) {
-						System.out.println("Connected Failed: "+port);
-						NodeHandle.duration(100);
-					}
+		new Thread(()->{
+			for(int i=0;i<20;i++) {
+				try {
+					socket=new Socket();
+					InetSocketAddress address=new InetSocketAddress(host, port);
+					socket.connect(address, 1000000000);
+					System.out.println("Julius Connect SUCCESSFUL ["+language+"]");
+					reader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					stream=socket.getOutputStream();
+					break;
+				} catch (Exception e) {
+					System.out.println("Connected Wait ["+language+"]");
+					NodeHandle.duration(100);
 				}
 			}
 		}).start();
 	}
-	
+
 	/******************************************************************************************
 	 * 
 	 */
 	public void pause() {
 		try {
-			System.out.println("PAUSE: "+port);
+			System.out.println("PAUSE ["+language+"]");
 			stream.write(("TERMINATE"+"\n").getBytes());
 			stream.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/******************************************************************************************
 	 * 
 	 */
 	public void resume() {
 		try {
-			System.out.println("RESUME: "+port);
+			System.out.println("RESUME ["+port+"]");
 			stream.write(("RESUME"+"\n").getBytes());
 			stream.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
-	
+
 	/******************************************************************************************
 	 * 
 	 * juliusに音声ファイルパスを投げて音声認識させる
@@ -118,7 +118,7 @@ public class Julius {
 	public Result recognition() {
 		return getResult();
 	}
-	
+
 	/******************************************************************************************
 	 * 
 	 * juliusから返ってくる認識結果の文字を取り出す
@@ -220,7 +220,7 @@ public class Julius {
 		}
 		return false;
 	}
-	
+
 	public class Result {
 		public String sentence;
 		public double score;
