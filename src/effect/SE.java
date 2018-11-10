@@ -1,6 +1,7 @@
 package effect;
 
 import process.Terminal;
+import ros.UserProperty;
 
 public class SE {
 
@@ -22,11 +23,12 @@ public class SE {
 			}
 		}
 	}
-
-
-
-
-
-
+	
+	public static void play(Effect effect) {
+		if(effect!=null) {
+			String filePath=UserProperty.get("sound.se.dir")+"/"+UserProperty.get(effect.property);
+			Terminal.commands("aplay", filePath).waitFor().execute();
+		}
+	}
 
 }

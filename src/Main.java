@@ -51,26 +51,28 @@ public class Main extends NodeHandle {
 			LaserScan data=((LaserScan)message);
 			double angle=data.getAngleMin();
 			int ci=0;
-			int element=0;
+			System.out.println(data.getAngleMin()+" : "+data.getAngleMax());
+			System.out.println(data.getAngleIncrement());
+			System.out.println();
 			for(int i=0;i<data.getRanges().length-1;i++) {
-				if(Math.abs(data.getRanges()[i]-data.getRanges()[i+1])<0.3||element>1) {
-					double x=data.getRanges()[i]*Math.cos(angle);
-					double y=data.getRanges()[i]*Math.sin(angle);
+				if(Math.abs(data.getRanges()[i]-data.getRanges()[i+1])<1) {
+					double x=data.getRanges()[i]*Math.sin(angle);
+					double y=data.getRanges()[i]*Math.cos(angle);
 					if(!Double.isFinite(x)) {x=0;}
 					if(!Double.isFinite(y)) {y=0;}
 					angle+=data.getAngleIncrement();
 					Marker marker=new Marker();
-					marker.setHeader("base_link", data.getHeader().getStamp());
+					marker.setHeader("laser_frame", data.getHeader().getStamp());
 					marker.setParam("scan_shapes", 10000+i, Type.SPHERE, Action.add);
 					marker.setPosition(x, y, 0.3);
 					marker.setOrientation(0, 0, 0, 1);
 					marker.setScale(0.08);
 					marker.setColor(colors[ci]);
 					rviz.addMarker(marker);
-					element++;
+					//element++;
 				}else {
 					ci++;
-					element=0;
+					//element=0;
 				}
 			}
 			rviz.publish();

@@ -5,6 +5,8 @@ package recognition;
 import dictionary.Dictionary;
 import dictionary.Language;
 import dictionary.Session;
+import effect.Effect;
+import effect.SE;
 import recognition.module.Julius;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
@@ -35,7 +37,7 @@ public abstract class Abstarct_Recognition {
 	protected boolean isStop;
 
 	protected Language language;
-
+	
 	public enum Response {
 		Yes,
 		No;
@@ -101,32 +103,16 @@ public abstract class Abstarct_Recognition {
 		julius.resume();
 	}
 
-	protected String repeat() {
-		String answer=null;
-		while(true) {
-			Result response=null;
-			while((response=julius.recognition())==null);
-			switch (response.sentence) {
-			case "YES":case "Yes":case "yes":case "はい":
-				return OK+answer;
-			case "NO":case "No":case "no":case "いいえ":
-				return REPEAT;
-			default:
-				publishVoice(CAUTION);
-				continue;
-			}
-		}
-	}
-
-
 	protected void publishVoice(String text) {
 		julius.pause();
 		voice_client.publish(text).waitForServer();
+		SE.play(Effect.Active);
 		julius.resume();
 	}
 
 	protected Response toQuestion(String template, String question) {
 		String sentence=template.replaceAll("\\$", question);
+		SE.play(Effect.Question);
 		publishVoice(sentence);
 		while(true) {
 			Result response=null;
@@ -140,6 +126,7 @@ public abstract class Abstarct_Recognition {
 				case "No":
 					return Response.No;
 				default:
+					SE.play(Effect.Question);
 					publishVoice(CAUTION);
 					continue;
 				}
@@ -147,8 +134,7 @@ public abstract class Abstarct_Recognition {
 		}
 	}
 
-	protected boolean isQuestion(String question) {
-		Session session=dictionary.getSession(question, language);
+	protected boolean isQuestion(Session session) {
 		if(session!=null) {
 			switch (session.answer) {
 			case "Yes":
@@ -159,8 +145,7 @@ public abstract class Abstarct_Recognition {
 		return false;
 	}
 
-	protected boolean isTrash(String question) {
-		Session session=dictionary.getSession(question, language);
+	protected boolean isTrash(Session session) {
 		if(session!=null) {
 			if(session.answer.equals("Trash")) {
 				return true;
@@ -169,8 +154,7 @@ public abstract class Abstarct_Recognition {
 		return false;
 	}
 
-	protected boolean isSystemCall(String question) {
-		Session session=dictionary.getSession(question, language);
+	protected boolean isSystemCall(Session session) {
 		if(session!=null) {
 			if(session.answer.equals("System Call")) {
 				return true;
@@ -178,12 +162,9 @@ public abstract class Abstarct_Recognition {
 		}
 		return false;
 	}
-
-	protected void loadQuestions(String path) {
-		try {
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+	
+	protected void playActive() {
+		
 	}
 	
 }

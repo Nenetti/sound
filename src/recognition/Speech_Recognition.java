@@ -40,8 +40,7 @@ public class Speech_Recognition extends Abstarct_Recognition{
 			super.voice_client=new ServiceClient("sound/voice/speak_jp", std_msgs.String._TYPE);
 			break;
 		}
-		super.language=language;
-		super.dictionary=new Dictionary(System.getProperty("user.home")+"/"+UserProperty.get("julius.home")+"/"+UserProperty.get("julius.dictionary")+"/"+UserProperty.get("julius.session"));
+		super.dictionary=new Dictionary(UserProperty.get("julius.dictionary.dir")+"/"+UserProperty.get("julius.session"));
 		startAnswerThread();
 	}
 
@@ -57,9 +56,10 @@ public class Speech_Recognition extends Abstarct_Recognition{
 				Result result=julius.recognition();
 				if(result==null) { continue; }
 				Session session=dictionary.getSession(result.sentence, language);
-				if(isQuestion(session.question)){continue;}
-				if(isTrash(session.question)){continue;}
-				if(isSystemCall(session.answer)) {
+				if(session==null) {continue;}
+				if(isQuestion(session)){continue;}
+				if(isTrash(session)){continue;}
+				if(isSystemCall(session)) {
 					//SystemCall
 					continue;
 				}
