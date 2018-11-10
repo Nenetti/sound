@@ -21,7 +21,6 @@
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/concert_service_msgs-0.9.0.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/cv_bridge_javacv-0.3.3.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/diagnostic_msgs-1.12.6.jar"/>
-	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/dictionary-0.0.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/dnsjava-2.1.1.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/follow_me-0.1.0.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/gateway_msgs-0.9.0.jar"/>
@@ -49,7 +48,6 @@
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/rocon_service_pair_msgs-0.9.0.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/rocon_std_msgs-0.9.0.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/rocon_tutorial_msgs-0.9.0.jar"/>
-	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/ros-0.0.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/roscpp-1.12.14.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/rosgraph_msgs-1.11.2.jar"/>
 	<classpathentry kind="lib" path="/home/ubuntu/.local/lib/java/rosjava-0.3.6.jar"/>
