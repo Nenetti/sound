@@ -5,6 +5,8 @@ package recognition;
 import dictionary.Dictionary;
 import dictionary.Language;
 import dictionary.Session;
+import dictionary.SessionType.Response;
+import dictionary.SessionType.Type;
 import sound_effect.Effect;
 import sound_effect.SE;
 import recognition.module.Julius;
@@ -34,14 +36,11 @@ public abstract class Abstarct_Recognition {
 	protected ServiceClient voice_client;
 	protected Julius julius;
 
-	protected boolean isStop;
+	protected boolean isPause;
 
 	protected Language language;
 	
-	public enum Response {
-		Yes,
-		No;
-	}
+	
 	
 	/******************************************************************************************
 	 * 
@@ -90,7 +89,7 @@ public abstract class Abstarct_Recognition {
 	 * 
 	 */
 	public void pause() {
-		isStop=true;
+		isPause=true;
 		julius.pause();
 	}
 
@@ -99,7 +98,7 @@ public abstract class Abstarct_Recognition {
 	 * 
 	 */
 	public void resume() {
-		isStop=false;
+		isPause=false;
 		julius.resume();
 	}
 
@@ -134,37 +133,28 @@ public abstract class Abstarct_Recognition {
 		}
 	}
 
+	protected boolean isHighScore(double score) {
+		return score==1.0 ? true : false;
+	}
+	
+	protected boolean isAskedScore(double score) {
+		return score>=0.5 ? true : false;
+	}
+	
 	protected boolean isQuestion(Session session) {
-		if(session!=null) {
-			switch (session.answer) {
-			case "Yes":
-			case "No":
-				return true;
-			}
-		}
-		return false;
+		return session.type==Type.Question ? true : false;
+	}
+	
+	protected boolean isResponse(Session session) {
+		return session.type==Type.Response ? true : false;
 	}
 
 	protected boolean isTrash(Session session) {
-		if(session!=null) {
-			if(session.answer.equals("Trash")) {
-				return true;
-			}
-		}
-		return false;
+		return session.type==Type.Trash ? true : false;
 	}
 
 	protected boolean isSystemCall(Session session) {
-		if(session!=null) {
-			if(session.answer.equals("System Call")) {
-				return true;
-			}
-		}
-		return false;
-	}
-	
-	protected void playActive() {
-		
+		return session.type==Type.SystemCall ? true : false;
 	}
 	
 }
