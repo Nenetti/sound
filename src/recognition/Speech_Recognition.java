@@ -4,10 +4,13 @@ package recognition;
 import dictionary.Dictionary;
 import dictionary.Language;
 import dictionary.Session;
+import dictionary.SessionType.Response;
 import recognition.module.Julius.Result;
 import ros.NodeHandle;
 import ros.ServiceClient;
 import ros.UserProperty;
+import sound_effect.Effect;
+import sound_effect.SE;
 
 
 
@@ -52,37 +55,72 @@ public class Speech_Recognition extends Abstarct_Recognition{
 		while(!julius.isConnected()) {NodeHandle.duration(1);}
 		new Thread(()->{
 			while(julius.isConnected()) {
-				if(isStop) { NodeHandle.duration(1); continue; }
+				if(isPause) { NodeHandle.duration(1); continue; }
+				//
 				Result result=julius.recognition();
 				if(result==null) { continue; }
+				//
 				Session session=dictionary.getSession(result.sentence, language);
 				if(session==null) {continue;}
-				if(isQuestion(session)){continue;}
-				if(isTrash(session)){continue;}
-				if(isSystemCall(session)) {
-					//SystemCall
-					continue;
+				if(isQuestion(session)){
+					QuestionThread(result, session);
 				}
-				if(result.score==1.0) {
-					//正解
-					publishVoice(session.answer);
-					continue;
-				}else if(result.score>0.5) {
-					//質疑判定
-					switch (toQuestion(QUESTION, result.sentence)) {
-					case Yes:
-						publishVoice(OK+session.answer);
-						break;
-					case No:
-						publishVoice(REPEAT);
-						break;
-					}
-					continue;
-				}
-				//精度低すぎ。聞き取り不可
-				publishVoice(NOANSWER);
-				System.out.println("Answer: "+result.sentence);
 			}
 		}).start();
+	}
+	
+	/******************************************************************************************
+	 * 
+	 * @param result
+	 * @param session
+	 */
+	public void QuestionThread(Result result, Session session) {
+		if(isHighScore(result.score)) {
+			//正解
+			publishVoice(session.answer);
+			return;
+		}else if(isAskedScore(result.score)) {
+			//質疑判定
+			switch (ResponseThread(result)) {
+			case Yes:
+				publishVoice(OK+session.answer);
+				break;
+			case No:
+				publishVoice(REPEAT);
+				break;
+			}
+			return;
+		}
+		//精度低すぎ。聞き取り不可
+		publishVoice(NOANSWER);
+	}
+	
+	/******************************************************************************************
+	 * 
+	 * @param result
+	 * @return
+	 */
+	public Response ResponseThread(Result result) {
+		String sentence=QUESTION.replaceAll("\\$", result.sentence);
+		SE.play(Effect.Question);
+		publishVoice(sentence);
+		Result response;
+		Session session;
+		while(true) {
+			while((response=julius.recognition())==null);
+			session=dictionary.getSession(response.sentence, language);
+			if(session!=null) {
+				switch (session.answer) {
+				case "Yes":
+					return Response.Yes;
+				case "No":
+					return Response.No;
+				default:
+					SE.play(Effect.Question);
+					publishVoice(CAUTION);
+					continue;
+				}
+			}
+		}
 	}
 }
