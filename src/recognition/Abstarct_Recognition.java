@@ -1,7 +1,6 @@
 
 package recognition;
 
-
 import dictionary.Dictionary;
 import dictionary.Language;
 import dictionary.Session;
@@ -16,17 +15,13 @@ import ros.Publisher;
 import ros.ServiceClient;
 import ros.ServiceServer;
 
-
-
 public abstract class Abstarct_Recognition {
-
 
 	protected String REPEAT;
 	protected String NOANSWER;
 	protected String QUESTION;
 	protected String CAUTION;
 	protected String OK;
-
 
 	protected Dictionary dictionary;
 
@@ -39,9 +34,7 @@ public abstract class Abstarct_Recognition {
 	protected boolean isPause;
 
 	protected Language language;
-	
-	
-	
+
 	/******************************************************************************************
 	 * 
 	 * @param dic
@@ -59,29 +52,14 @@ public abstract class Abstarct_Recognition {
 	 */
 	public void changeLanguage(boolean isChange, Language language) {
 		/*
-		if(isChange) {
-			switch (language) {
-			case English:
-				Recognition_en.instance.pause();
-				Recognition_jp.instance.resume();
-				Recognition_jp.instance.publishVoice("日本語に変更します");
-				break;
-			case Japanese:
-				Recognition_jp.instance.pause();
-				Recognition_en.instance.resume();
-				Recognition_en.instance.publishVoice("Changed English.");
-				break;
-			}
-		}else {
-			switch (language) {
-			case English:
-				publishVoice("No changed.");
-				break;
-			case Japanese:
-				publishVoice("キャンセルしました");
-				break;
-			}
-		}*/
+		 * if(isChange) { switch (language) { case English:
+		 * Recognition_en.instance.pause(); Recognition_jp.instance.resume();
+		 * Recognition_jp.instance.publishVoice("日本語に変更します"); break; case Japanese:
+		 * Recognition_jp.instance.pause(); Recognition_en.instance.resume();
+		 * Recognition_en.instance.publishVoice("Changed English."); break; } }else {
+		 * switch (language) { case English: publishVoice("No changed."); break; case
+		 * Japanese: publishVoice("キャンセルしました"); break; } }
+		 */
 	}
 
 	/******************************************************************************************
@@ -89,7 +67,7 @@ public abstract class Abstarct_Recognition {
 	 * 
 	 */
 	public void pause() {
-		isPause=true;
+		isPause = true;
 		julius.pause();
 	}
 
@@ -98,7 +76,7 @@ public abstract class Abstarct_Recognition {
 	 * 
 	 */
 	public void resume() {
-		isPause=false;
+		isPause = false;
 		julius.resume();
 	}
 
@@ -110,15 +88,16 @@ public abstract class Abstarct_Recognition {
 	}
 
 	protected Response toQuestion(String template, String question) {
-		String sentence=template.replaceAll("\\$", question);
+		String sentence = template.replaceAll("\\$", question);
 		SE.play(Effect.Question);
 		publishVoice(sentence);
-		while(true) {
-			Result response=null;
-			//nullの間はwhileで繰り返す
-			while((response=julius.recognition())==null);
-			Session session=dictionary.getSession(response.sentence, language);
-			if(session!=null) {
+		while (true) {
+			Result response = null;
+			// nullの間はwhileで繰り返す
+			while ((response = julius.recognition()) == null)
+				;
+			Session session = dictionary.getSession(response.sentence, language);
+			if (session != null) {
 				switch (session.answer) {
 				case "Yes":
 					return Response.Yes;
@@ -134,27 +113,27 @@ public abstract class Abstarct_Recognition {
 	}
 
 	protected boolean isHighScore(double score) {
-		return score==1.0 ? true : false;
+		return score == 1.0 ? true : false;
 	}
-	
+
 	protected boolean isAskedScore(double score) {
-		return score>=0.5 ? true : false;
+		return score >= 0.5 ? true : false;
 	}
-	
+
 	protected boolean isQuestion(Session session) {
-		return session.type==Type.Question ? true : false;
+		return session.type == Type.Question ? true : false;
 	}
-	
+
 	protected boolean isResponse(Session session) {
-		return session.type==Type.Response ? true : false;
+		return session.type == Type.Response ? true : false;
 	}
 
 	protected boolean isTrash(Session session) {
-		return session.type==Type.Trash ? true : false;
+		return session.type == Type.Trash ? true : false;
 	}
 
 	protected boolean isSystemCall(Session session) {
-		return session.type==Type.SystemCall ? true : false;
+		return session.type == Type.SystemCall ? true : false;
 	}
-	
+
 }

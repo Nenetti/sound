@@ -1,17 +1,11 @@
 
 package recognition;
 
-
-
 import org.ros.namespace.GraphName;
 
 import dictionary.Language;
 import ros.NodeHandle;
 import ros.UserProperty;
-
-
-
-
 
 public class Recognition extends NodeHandle {
 
@@ -32,15 +26,15 @@ public class Recognition extends NodeHandle {
 	 */
 	@Override
 	public void start() {
-		recognition_en=new Speech_Recognition(Language.English);
-		//recognition_jp=new Speech_Recognition(Language.Japanese);
+		recognition_en = new Speech_Recognition(Language.English);
+		// recognition_jp=new Speech_Recognition(Language.Japanese);
 		NodeHandle.duration(1000);
 		switch (UserProperty.get("julius.language")) {
 		case "English":
 			recognition_en.resume();
 			break;
 		case "Japanese":
-			//recognition_jp.resume();
+			// recognition_jp.resume();
 			break;
 
 		}

@@ -1,7 +1,6 @@
 
 package recognition.module;
 
-
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -12,15 +11,13 @@ import dictionary.Language;
 import process.Terminal;
 import ros.NodeHandle;
 
-
-
 public class Julius {
 
-	private String home=System.getProperty("user.home");
-	private String path="ros/sound/julius";
-	private String shell="boot.sh";
+	private String home = System.getProperty("user.home");
+	private String path = "ros/sound/julius";
+	private String shell = "boot.sh";
 	private String host;
-	private String exec=home+"/"+path+"/"+shell;
+	private String exec = home + "/" + path + "/" + shell;
 	private int port;
 	private Language language;
 
@@ -32,16 +29,9 @@ public class Julius {
 
 	public String result;
 
-	enum type{
-		SHYP_S,
-		SHYP_E,
-		WHYPO_WORD,
-		REJECTED_REASON,
-		START,
-		END;
+	enum type {
+		SHYP_S, SHYP_E, WHYPO_WORD, REJECTED_REASON, START, END;
 	}
-
-
 
 	/******************************************************************************************
 	 * 
@@ -51,9 +41,9 @@ public class Julius {
 	 * @param port
 	 */
 	public Julius(String jconf, String host, int port, Language language) {
-		this.host=host;
-		this.port=port;
-		this.language=language;
+		this.host = host;
+		this.port = port;
+		this.language = language;
 		run("bash", exec, jconf, String.valueOf(port));
 		socket_connect();
 	}
@@ -67,18 +57,18 @@ public class Julius {
 	 * juliusにソケットで接続 (認識結果を受け取るため)
 	 */
 	private void socket_connect() {
-		new Thread(()->{
-			for(int i=0;i<20;i++) {
+		new Thread(() -> {
+			for (int i = 0; i < 20; i++) {
 				try {
-					socket=new Socket();
-					InetSocketAddress address=new InetSocketAddress(host, port);
+					socket = new Socket();
+					InetSocketAddress address = new InetSocketAddress(host, port);
 					socket.connect(address, 1000000000);
-					System.out.println("Julius Connect SUCCESSFUL ["+language+"]");
-					reader=new BufferedReader(new InputStreamReader(socket.getInputStream()));
-					stream=socket.getOutputStream();
+					System.out.println("Julius Connect SUCCESSFUL [" + language + "]");
+					reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+					stream = socket.getOutputStream();
 					break;
 				} catch (Exception e) {
-					System.out.println("Connected Wait ["+language+"]");
+					System.out.println("Connected Wait [" + language + "]");
 					NodeHandle.duration(100);
 				}
 			}
@@ -90,8 +80,8 @@ public class Julius {
 	 */
 	public void pause() {
 		try {
-			System.out.println("PAUSE ["+language+"]");
-			stream.write(("TERMINATE"+"\n").getBytes());
+			System.out.println("PAUSE [" + language + "]");
+			stream.write(("TERMINATE" + "\n").getBytes());
 			stream.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -103,8 +93,8 @@ public class Julius {
 	 */
 	public void resume() {
 		try {
-			System.out.println("RESUME ["+port+"]");
-			stream.write(("RESUME"+"\n").getBytes());
+			System.out.println("RESUME [" + port + "]");
+			stream.write(("RESUME" + "\n").getBytes());
 			stream.flush();
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -127,20 +117,20 @@ public class Julius {
 	 */
 	private Result getResult() {
 		String line;
-		while(!socket.isClosed()&&socket.isConnected()) {
+		while (!socket.isClosed() && socket.isConnected()) {
 			try {
-				line=reader.readLine();
-				if(line!=null) {
-					line=line.trim();
-					if(line.length()>4) {
-						type type=getLineType(line);
-						if(type!=null) {
+				line = reader.readLine();
+				if (line != null) {
+					line = line.trim();
+					if (line.length() > 4) {
+						type type = getLineType(line);
+						if (type != null) {
 							switch (type) {
 							case WHYPO_WORD:
-								String[] split=line.split("\"");
-								double score=Double.valueOf(split[7]);
-								String result=split[1].replaceAll("_", " ");
-								System.out.println(score+" : "+result);
+								String[] split = line.split("\"");
+								double score = Double.valueOf(split[7]);
+								String result = split[1].replaceAll("_", " ");
+								System.out.println(score + " : " + result);
 								return new Result(result, score);
 							case REJECTED_REASON:
 								return null;
@@ -188,7 +178,7 @@ public class Julius {
 			return type.SHYP_E;
 		case "WHY":
 			// WHYPO WORD
-			//実際に内容を表示する部分
+			// 実際に内容を表示する部分
 			return type.WHYPO_WORD;
 		case "INP":
 			// INPUT STATUS
@@ -215,8 +205,8 @@ public class Julius {
 	 * @return
 	 */
 	public boolean isConnected() {
-		if(socket!=null) {
-			return !socket.isClosed()&&socket.isConnected();
+		if (socket != null) {
+			return !socket.isClosed() && socket.isConnected();
 		}
 		return false;
 	}
@@ -224,9 +214,10 @@ public class Julius {
 	public class Result {
 		public String sentence;
 		public double score;
+
 		public Result(String sentence, double score) {
-			this.sentence=sentence;
-			this.score=score;
+			this.sentence = sentence;
+			this.score = score;
 		}
 	}
 

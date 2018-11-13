@@ -5,13 +5,11 @@ import ros.UserProperty;
 
 public class SE {
 
-
-
 	public static void play(String filePath) {
-		if(filePath!=null) {
-			int index=filePath.lastIndexOf(".");
-			if(index>0) {
-				String extension=filePath.substring(index+1);
+		if (filePath != null) {
+			int index = filePath.lastIndexOf(".");
+			if (index > 0) {
+				String extension = filePath.substring(index + 1);
 				switch (extension) {
 				case "wav":
 					Terminal.commands("aplay", filePath).waitFor().execute();
@@ -23,10 +21,10 @@ public class SE {
 			}
 		}
 	}
-	
+
 	public static void play(Effect effect) {
-		if(effect!=null) {
-			String filePath=UserProperty.get("sound.se.dir")+"/"+UserProperty.get(effect.property);
+		if (effect != null) {
+			String filePath = UserProperty.get("sound.se.dir") + "/" + UserProperty.get(effect.property);
 			Terminal.commands("aplay", filePath).waitFor().execute();
 		}
 	}
