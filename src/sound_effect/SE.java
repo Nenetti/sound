@@ -1,4 +1,4 @@
-package effect;
+package sound_effect;
 
 import process.Terminal;
 import ros.UserProperty;
