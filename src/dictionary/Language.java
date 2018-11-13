@@ -2,6 +2,6 @@ package dictionary;
 
 public enum Language {
 
-	Japanese, English;
+    Japanese, English;
 
 }
