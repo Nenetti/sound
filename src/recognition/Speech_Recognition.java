@@ -63,8 +63,7 @@ public class Speech_Recognition {
                 this.voice_client = new ServiceClient("sound/voice/speak_jp", std_msgs.String._TYPE);
                 break;
         }
-        this.dictionary = new Dictionary(
-                UserProperty.get("julius.dictionary.dir") + "/" + UserProperty.get("julius.session"));
+        this.dictionary = new Dictionary(UserProperty.get("julius.dictionary.dir") + "/" + UserProperty.get("julius.session"));
         startAnswerThread();
     }
 

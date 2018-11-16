@@ -80,7 +80,9 @@ public class Julius {
      */
     public void pause() {
         try {
-            System.out.println("PAUSE [" + language + "]");
+            System.out.println("*************************");
+            System.out.println("PAUSE  [" + language + "]");
+            System.out.println("*************************");
             stream.write(("TERMINATE" + "\n").getBytes());
             stream.flush();
         } catch (Exception e) {
@@ -93,7 +95,9 @@ public class Julius {
      */
     public void resume() {
         try {
-            System.out.println("RESUME [" + port + "]");
+            System.out.println("*************************");
+            System.out.println("RESUME [" + language + "]");
+            System.out.println("*************************");
             stream.write(("RESUME" + "\n").getBytes());
             stream.flush();
         } catch (Exception e) {

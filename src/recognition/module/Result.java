@@ -8,4 +8,9 @@ public class Result {
         this.sentence = sentence;
         this.score = score;
     }
+
+    @Override
+    public String toString() {
+        return sentence+" : "+score;
+    }
 }

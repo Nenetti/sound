@@ -1,6 +1,37 @@
 package recognition;
 
+import dictionary.Language;
+import dictionary.Session;
+
 public class SystemCall {
+
+
+    public static void execute(Session session, Language language){
+        switch (language){
+            case English:
+                execute_en(session);
+                break;
+            case Japanese:
+                execute_jp(session);
+                break;
+        }
+    }
+
+    private static void execute_en(Session session){
+        switch (session.answer){
+            case "Change Language":
+
+                break;
+        }
+    }
+
+    private static void execute_jp(Session session){
+        switch (session.answer){
+            case "Change Language":
+
+                break;
+        }
+    }
 
     /*
      *

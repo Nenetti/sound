@@ -14,4 +14,8 @@ public class Session {
         this.type = type;
     }
 
+    @Override
+    public String toString() {
+        return question+" : "+answer;
+    }
 }
