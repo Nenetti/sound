@@ -24,7 +24,7 @@ public class SE {
 
     public static void play(Effect effect) {
         if (effect != null) {
-            String filePath = UserProperty.get("sound.se.dir") + "/" + UserProperty.get(effect.property);
+            String filePath = UserProperty.getKey("sound.se.dir") + "/" + UserProperty.getKey(effect.property);
             Terminal.commands("aplay", filePath).waitFor().execute();
         }
     }
