@@ -5,6 +5,7 @@ import org.ros.message.MessageListener;
 import org.ros.namespace.GraphName;
 import dictionary.Language;
 import ros.NodeHandle;
+import ros.Publisher;
 import ros.ServiceClient;
 import ros.ServiceServer;
 import speak.module.VoiceMaker;
@@ -18,8 +19,9 @@ public class Speaker extends NodeHandle {
 
     private ServiceServer voice_server_jp;
     private ServiceServer voice_server_en;
-    // private Publisher status_speaker;
-    private ServiceClient mic_client;
+    private Publisher speaker_publisher;
+    private Publisher mic_publisher;
+    private Publisher status_publisher;
     private VoiceMaker voice_jp;
     private VoiceMaker voice_en;
 
@@ -67,33 +69,47 @@ public class Speaker extends NodeHandle {
     public void start() {
         // status_speaker=new Publisher(connectedNode, "status/speaker",
         // std_msgs.String._TYPE);
-        mic_client = new ServiceClient("status/mic", std_msgs.String._TYPE);
+        speaker_publisher = new Publisher("status/speaker", std_msgs.String._TYPE);
+        mic_publisher = new Publisher("status/mic", std_msgs.String._TYPE);
+        status_publisher = new Publisher("status/text", std_msgs.String._TYPE);
         voice_server_jp = new ServiceServer("sound/voice/speak_jp", std_msgs.String._TYPE);
         voice_server_en = new ServiceServer("sound/voice/speak_en", std_msgs.String._TYPE);
         voice_server_jp.addMessageListener(new MessageListener<Object>() {
             @Override
             public void onNewMessage(Object message) {
-                if (!isProcess) {
+                if ( !isProcess ) {
+                    String data=((std_msgs.String) message).getData();
                     isProcess = true;
-                    mic_client.publish("OFF");
-                    speak(((std_msgs.String) message).getData(), Language.Japanese);
+                    //mic_publisher.publish("OFF");
+                    speaker_publisher.publish("ON");
+                    //status_publisher.publish(data);
+                    speak(data, Language.Japanese);
                     voice_server_jp.complete();
-                    mic_client.publish("ON");
+                    //speaker_publisher.publish("OFF");
+                    mic_publisher.publish("ON");
                 }
             }
         });
         voice_server_en.addMessageListener(new MessageListener<Object>() {
             @Override
             public void onNewMessage(Object message) {
-                if (!isProcess) {
+                if ( !isProcess ) {
+                    String data=((std_msgs.String) message).getData();
                     isProcess = true;
-                    mic_client.publish("OFF");
-                    speak(((std_msgs.String) message).getData(), Language.English);
+                    //mic_publisher.publish("OFF");
+                    speaker_publisher.publish("ON");
+                    //status_publisher.publish(data);
+                    speak(data, Language.English);
                     voice_server_en.complete();
-                    mic_client.publish("ON");
+                    //speaker_publisher.publish("OFF");
+                    mic_publisher.publish("ON");
                 }
             }
         });
+        NodeHandle.duration(1000);
+        System.out.println("********************************************");
+        System.out.println("OK");
+        System.out.println("********************************************");
     }
 
 }
