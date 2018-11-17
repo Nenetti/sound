@@ -7,8 +7,6 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="module" module-name="library" />
-    <orderEntry type="library" name="library-0.0" level="project" />
-    <orderEntry type="library" name="ros_jar" level="project" />
+    <orderEntry type="library" name="ros" level="project" />
   </component>
 </module>
