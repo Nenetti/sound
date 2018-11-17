@@ -29,7 +29,7 @@ public class Recognition extends NodeHandle {
         recognition_en = new Speech_Recognition(Language.English);
         // recognition_jp=new Speech_Recognition(Language.Japanese);
         NodeHandle.duration(1000);
-        switch (UserProperty.get("julius.language")) {
+        switch (UserProperty.getKey("julius.language")) {
             case "English":
                 recognition_en.resume();
                 break;

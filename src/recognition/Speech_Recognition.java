@@ -6,6 +6,8 @@ import dictionary.Language;
 import dictionary.Session;
 import dictionary.SessionType;
 import dictionary.SessionType.Response;
+import reader.CSV_Reader;
+import reader.CSV_Writer;
 import recognition.module.Julius;
 import recognition.module.Result;
 import ros.*;
@@ -23,9 +25,9 @@ public class Speech_Recognition {
 
     public Dictionary dictionary;
 
-    public ServiceServer mic_server;
-    public Publisher mic_publisher;
-    public Publisher se_publisher;
+
+    public Publisher status_main_publisher;
+    public Publisher status_sub_publisher;
     public ServiceClient voice_client;
     public Julius julius;
 
@@ -43,28 +45,33 @@ public class Speech_Recognition {
         this.language = language;
         switch (language) {
             case English:
-                startup(UserProperty.get("julius.en.jconf"), UserProperty.get("julius.en.host"),
-                        UserProperty.get("julius.en.port"));
-                this.REPEAT = UserProperty.get("Response.en.Repeat");
-                this.NOANSWER = UserProperty.get("Response.en.NoAnswer");
-                this.QUESTION = UserProperty.get("Response.en.Question");
-                this.CAUTION = UserProperty.get("Response.en.Caution");
-                this.OK = UserProperty.get("Response.en.OK");
+                startup(UserProperty.getKey("julius.en.jconf"), UserProperty.getKey("julius.en.host"),
+                    UserProperty.getKey("julius.en.port"));
+                this.REPEAT = UserProperty.getKey("Response.en.Repeat");
+                this.NOANSWER = UserProperty.getKey("Response.en.NoAnswer");
+                this.QUESTION = UserProperty.getKey("Response.en.Question");
+                this.CAUTION = UserProperty.getKey("Response.en.Caution");
+                this.OK = UserProperty.getKey("Response.en.OK");
                 this.voice_client = new ServiceClient("sound/voice/speak_en", std_msgs.String._TYPE);
                 break;
             case Japanese:
-                startup(UserProperty.get("julius.jp.jconf"), UserProperty.get("julius.jp.host"),
-                        UserProperty.get("julius.jp.port"));
-                this.REPEAT = UserProperty.get("Response.jp.Repeat");
-                this.NOANSWER = UserProperty.get("Response.jp.NoAnswer");
-                this.QUESTION = UserProperty.get("Response.jp.Question");
-                this.CAUTION = UserProperty.get("Response.jp.Caution");
-                this.OK = UserProperty.get("Response.jp.OK");
+                startup(UserProperty.getKey("julius.jp.jconf"), UserProperty.getKey("julius.jp.host"),
+                    UserProperty.getKey("julius.jp.port"));
+                this.REPEAT = UserProperty.getKey("Response.jp.Repeat");
+                this.NOANSWER = UserProperty.getKey("Response.jp.NoAnswer");
+                this.QUESTION = UserProperty.getKey("Response.jp.Question");
+                this.CAUTION = UserProperty.getKey("Response.jp.Caution");
+                this.OK = UserProperty.getKey("Response.jp.OK");
                 this.voice_client = new ServiceClient("sound/voice/speak_jp", std_msgs.String._TYPE);
                 break;
         }
-        this.dictionary = new Dictionary(UserProperty.get("julius.dictionary.dir") + "/" + UserProperty.get("julius.session"));
-        startAnswerThread();
+        this.dictionary = new Dictionary(UserProperty.getKey("julius.dictionary.dir") + "/" + UserProperty.getKey("julius.session"));
+
+        status_main_publisher = new Publisher("status/main_text", std_msgs.String._TYPE);
+        status_sub_publisher = new Publisher("status/sub_text", std_msgs.String._TYPE);
+
+
+        startThread();
     }
 
     /******************************************************************************************
@@ -81,27 +88,24 @@ public class Speech_Recognition {
 
     /******************************************************************************************
      *
-     *
+     * マルチスレッド
      */
-    public void startAnswerThread() {
-        while (!julius.isConnected()) { NodeHandle.duration(1); }
+    public void startThread() {
+        while (!julius.isConnected()) {
+            NodeHandle.duration(1);
+        }
         new Thread(() -> {
             while (julius.isConnected()) {
-                if (isPause) {
+                if ( isPause ) {
                     NodeHandle.duration(1);
                     continue;
                 }
-                //
                 Result result = startRecognition();
-                if (result == null) {
-                    continue;
-                }
-                //
+                if ( result == null ) continue;
+
                 Session session = dictionary.getSession(result.sentence, language);
-                if (session == null) {
-                    continue;
-                }
-                if (isQuestion(session)) {
+                if ( session == null ) continue;
+                if ( isQuestion(session) ) {
                     QuestionThread(result, session);
                 }
             }
@@ -110,21 +114,29 @@ public class Speech_Recognition {
 
     /******************************************************************************************
      *
+     * 質問スレッド
+     *
      * @param result
      * @param session
      */
     public void QuestionThread(Result result, Session session) {
-        if (isHighScore(result.score)) {
+        if ( isHighScore(result.score) ) {
             // 正解
+            status_main_publisher.publish(session.answer);
+            status_sub_publisher.publish("");
             publishVoice(session.answer);
             return;
-        } else if (isAskedScore(result.score)) {
+        } else if ( isAskedScore(result.score) ) {
             // 質疑判定
             switch (ResponseThread(result)) {
                 case Yes:
+                    status_main_publisher.publish("A.  "+session.answer);
+                    status_sub_publisher.publish("");
                     publishVoice(OK + session.answer);
                     break;
                 case No:
+                    status_main_publisher.publish(REPEAT);
+                    status_sub_publisher.publish("");
                     publishVoice(REPEAT);
                     break;
             }
@@ -136,26 +148,31 @@ public class Speech_Recognition {
 
     /******************************************************************************************
      *
+     * イエスノー返事スレッド
+     *
      * @param result
      * @return
      */
     public Response ResponseThread(Result result) {
         String sentence = QUESTION.replaceAll("\\$", result.sentence);
         SE.play(Effect.Question);
+        status_main_publisher.publish(result.sentence);
+        status_sub_publisher.publish("Please Answer with\n  \nYes it is. or No it isn't");
         publishVoice(sentence);
         Result response;
         Session session;
         while (true) {
-            while ((response = startRecognition()) == null)
-                ;
+            response = startRecognition();
+            if ( response == null ) continue;
             session = dictionary.getSession(response.sentence, language);
-            if (session != null) {
+            if ( session != null ) {
                 switch (session.answer) {
                     case "Yes":
                         return Response.Yes;
                     case "No":
                         return Response.No;
                     default:
+                        status_sub_publisher.publish(CAUTION);
                         SE.play(Effect.Question);
                         publishVoice(CAUTION);
                         continue;
@@ -167,8 +184,8 @@ public class Speech_Recognition {
     /******************************************************************************************
      *
      */
-    public Result startRecognition(){
-        return  julius.recognition();
+    public Result startRecognition() {
+        return julius.recognition();
     }
 
     /******************************************************************************************
