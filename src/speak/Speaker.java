@@ -27,19 +27,49 @@ public class Speaker extends NodeHandle {
 
     /******************************************************************************************
      *
-     * コンストラクター
      */
-    public Speaker() {
-        this.voice_jp = new VoiceMaker(storagePath, fileName, Language.Japanese);
-        this.voice_en = new VoiceMaker(storagePath, fileName, Language.English);
+    @Override
+    public GraphName getDefaultNodeName() {
+        return GraphName.of("sounds/voice/speak");
     }
 
     /******************************************************************************************
      *
      */
     @Override
-    public GraphName getDefaultNodeName() {
-        return GraphName.of("sounds/voice/speak");
+    public void start() {
+        this.voice_jp = new VoiceMaker(storagePath, fileName, Language.Japanese);
+        this.voice_en = new VoiceMaker(storagePath, fileName, Language.English);
+
+        this.speaker_publisher = new Publisher("/rione/status/speaker", std_msgs.String._TYPE);
+        this.mic_publisher = new Publisher("/rione/status/mic", std_msgs.String._TYPE);
+        this.status_publisher = new Publisher("/rione/status/text", std_msgs.String._TYPE);
+        this.voice_server_jp = new ServiceServer("/rione/sound/voice/speak_jp", std_msgs.String._TYPE);
+        this.voice_server_en = new ServiceServer("/rione/sound/voice/speak_en", std_msgs.String._TYPE);
+        this.voice_server_jp.addMessageListener((message)->{
+            if ( !isProcess ) {
+                String data=((std_msgs.String) message).getData();
+                isProcess = true;
+                speaker_publisher.publish("ON");
+                speak(data, Language.Japanese);
+                voice_server_jp.complete();
+                mic_publisher.publish("ON");
+            }
+        });
+        voice_server_en.addMessageListener((message)->{
+            if ( !isProcess ) {
+                String data=((std_msgs.String) message).getData();
+                isProcess = true;
+                speaker_publisher.publish("ON");
+                speak(data, Language.English);
+                voice_server_en.complete();
+                mic_publisher.publish("ON");
+            }
+        });
+        NodeHandle.duration(1000);
+        System.out.println("********************************************");
+        System.out.println("OK");
+        System.out.println("********************************************");
     }
 
     /******************************************************************************************
@@ -60,56 +90,6 @@ public class Speaker extends NodeHandle {
         }
         // mic_client.publish("on").waitForServer();
         isProcess = false;
-    }
-
-    /******************************************************************************************
-     *
-     */
-    @Override
-    public void start() {
-        // status_speaker=new Publisher(connectedNode, "status/speaker",
-        // std_msgs.String._TYPE);
-        speaker_publisher = new Publisher("status/speaker", std_msgs.String._TYPE);
-        mic_publisher = new Publisher("status/mic", std_msgs.String._TYPE);
-        status_publisher = new Publisher("status/text", std_msgs.String._TYPE);
-        voice_server_jp = new ServiceServer("sound/voice/speak_jp", std_msgs.String._TYPE);
-        voice_server_en = new ServiceServer("sound/voice/speak_en", std_msgs.String._TYPE);
-        voice_server_jp.addMessageListener(new MessageListener<Object>() {
-            @Override
-            public void onNewMessage(Object message) {
-                if ( !isProcess ) {
-                    String data=((std_msgs.String) message).getData();
-                    isProcess = true;
-                    //mic_publisher.publish("OFF");
-                    speaker_publisher.publish("ON");
-                    //status_publisher.publish(data);
-                    speak(data, Language.Japanese);
-                    voice_server_jp.complete();
-                    //speaker_publisher.publish("OFF");
-                    mic_publisher.publish("ON");
-                }
-            }
-        });
-        voice_server_en.addMessageListener(new MessageListener<Object>() {
-            @Override
-            public void onNewMessage(Object message) {
-                if ( !isProcess ) {
-                    String data=((std_msgs.String) message).getData();
-                    isProcess = true;
-                    //mic_publisher.publish("OFF");
-                    speaker_publisher.publish("ON");
-                    //status_publisher.publish(data);
-                    speak(data, Language.English);
-                    voice_server_en.complete();
-                    //speaker_publisher.publish("OFF");
-                    mic_publisher.publish("ON");
-                }
-            }
-        });
-        NodeHandle.duration(1000);
-        System.out.println("********************************************");
-        System.out.println("OK");
-        System.out.println("********************************************");
     }
 
 }

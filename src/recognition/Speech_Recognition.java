@@ -52,7 +52,7 @@ public class Speech_Recognition {
                 this.QUESTION = UserProperty.getKey("Response.en.Question");
                 this.CAUTION = UserProperty.getKey("Response.en.Caution");
                 this.OK = UserProperty.getKey("Response.en.OK");
-                this.voice_client = new ServiceClient("sound/voice/speak_en", std_msgs.String._TYPE);
+                this.voice_client = new ServiceClient("/rione/sound/voice/speak_en", std_msgs.String._TYPE);
                 break;
             case Japanese:
                 startup(UserProperty.getKey("julius.jp.jconf"), UserProperty.getKey("julius.jp.host"),
@@ -62,13 +62,13 @@ public class Speech_Recognition {
                 this.QUESTION = UserProperty.getKey("Response.jp.Question");
                 this.CAUTION = UserProperty.getKey("Response.jp.Caution");
                 this.OK = UserProperty.getKey("Response.jp.OK");
-                this.voice_client = new ServiceClient("sound/voice/speak_jp", std_msgs.String._TYPE);
+                this.voice_client = new ServiceClient("/rione/sound/voice/speak_jp", std_msgs.String._TYPE);
                 break;
         }
         this.dictionary = new Dictionary(UserProperty.getKey("julius.dictionary.dir") + "/" + UserProperty.getKey("julius.session"));
 
-        status_main_publisher = new Publisher("status/main_text", std_msgs.String._TYPE);
-        status_sub_publisher = new Publisher("status/sub_text", std_msgs.String._TYPE);
+        this.status_main_publisher = new Publisher("/rione/status/main_text", std_msgs.String._TYPE);
+        this.status_sub_publisher = new Publisher("/rione/status/sub_text", std_msgs.String._TYPE);
 
 
         startThread();
@@ -122,7 +122,7 @@ public class Speech_Recognition {
     public void QuestionThread(Result result, Session session) {
         if ( isHighScore(result.score) ) {
             // 正解
-            status_main_publisher.publish(session.answer);
+            status_main_publisher.publish("A.  "+session.answer);
             status_sub_publisher.publish("");
             publishVoice(session.answer);
             return;
@@ -130,7 +130,7 @@ public class Speech_Recognition {
             // 質疑判定
             switch (ResponseThread(result)) {
                 case Yes:
-                    status_main_publisher.publish("A.  "+session.answer);
+                    status_main_publisher.publish("A.  " + session.answer);
                     status_sub_publisher.publish("");
                     publishVoice(OK + session.answer);
                     break;
@@ -156,8 +156,8 @@ public class Speech_Recognition {
     public Response ResponseThread(Result result) {
         String sentence = QUESTION.replaceAll("\\$", result.sentence);
         SE.play(Effect.Question);
-        status_main_publisher.publish(result.sentence);
-        status_sub_publisher.publish("Please Answer with\n  \nYes it is. or No it isn't");
+        status_main_publisher.publish("Q.  " + result.sentence);
+        status_sub_publisher.publish("Please Answer with\n  \nYes it is. or No it isn't\nThat's right. or That's wrong");
         publishVoice(sentence);
         Result response;
         Session session;
@@ -172,7 +172,7 @@ public class Speech_Recognition {
                     case "No":
                         return Response.No;
                     default:
-                        status_sub_publisher.publish(CAUTION);
+                        status_sub_publisher.publish("Sorry, Please Answer with\n  \nYes it is. or No it isn't\nThat's right. or That's wrong");
                         SE.play(Effect.Question);
                         publishVoice(CAUTION);
                         continue;

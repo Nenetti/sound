@@ -21,12 +21,12 @@ public class Converter {
                 String english;
                 String japanese;
                 switch (cells.length) {
-                    case 3:
+                    case 4:
                         english = cells[0].replaceAll(" ", "_");
                         writer_en.write(english + "\t" + cells[1]);
                         writer_en.newLine();
                         break;
-                    case 6:
+                    case 8:
                         english = cells[0].replaceAll(" ", "_");
                         writer_en.write(english + "\t" + cells[1]);
                         writer_en.newLine();
